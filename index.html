@@ -869,6 +869,96 @@ const K = { STATE:'qd_state_v6', CRITERIA:'qd_criteria_v6', PIN:'qd_pin_v6', GOA
 function ls(k){ try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null} }
 function ss(k,v){ localStorage.setItem(k,JSON.stringify(v)) }
 
+// ── SUPABASE DB HELPERS ──
+async function dbSaveConfig(chave, valor){
+  await _supabase.from('configuracoes').upsert({chave, valor}, {onConflict:'chave'});
+}
+async function dbLoadConfig(chave){
+  const {data} = await _supabase.from('configuracoes').select('valor').eq('chave',chave).single();
+  return data?.valor ?? null;
+}
+async function dbSaveAll(){
+  // Save users, teams, months to Supabase
+  try {
+    // Upsert all users
+    if(users?.length){
+      const usersData = users.map(u=>({id:u.id,name:u.name,role:u.role,team_id:u.teamId||null,email:u.email||null,password_set:u.passwordSet!==false}));
+      await _supabase.from('usuarios').upsert(usersData, {onConflict:'id'});
+    }
+    // Upsert all teams
+    if(teams?.length){
+      const teamsData = teams.map(t=>({id:t.id,name:t.name,manager_id:t.managerId||null,criteria_id:t.criteriaId||'global'}));
+      await _supabase.from('equipes').upsert(teamsData, {onConflict:'id'});
+    }
+    // Upsert months
+    if(months?.length){
+      const monthsData = months.map(m=>({nome:m}));
+      await _supabase.from('meses').upsert(monthsData, {onConflict:'nome'});
+    }
+  } catch(e){ console.warn('dbSaveAll error:', e); }
+}
+async function dbLoadAll(){
+  try {
+    const [uRes, tRes, mRes] = await Promise.all([
+      _supabase.from('usuarios').select('*'),
+      _supabase.from('equipes').select('*'),
+      _supabase.from('meses').select('nome')
+    ]);
+    if(uRes.data?.length) users = uRes.data.map(u=>({id:u.id,name:u.name,role:u.role,teamId:u.team_id,email:u.email,password:null,passwordSet:u.password_set}));
+    if(tRes.data?.length) teams = tRes.data.map(t=>({id:t.id,name:t.name,managerId:t.manager_id,criteriaId:t.criteria_id||'global'}));
+    if(mRes.data?.length) months = mRes.data.map(m=>m.nome);
+    return uRes.data?.length > 0;
+  } catch(e){ console.warn('dbLoadAll error:', e); return false; }
+}
+async function dbSaveMonitoria(mes, record){
+  try {
+    await _supabase.from('monitorias').upsert({
+      id: record.id, proto: record.proto,
+      agent_id: record.agentId, agent_name: record.agentName,
+      manager_id: record.managerId, manager_name: record.managerName,
+      team_id: record.teamId, team_name: record.teamName,
+      criteria_id: record.criteriaId||'global',
+      max_score: record.maxScore, date: record.date,
+      score: record.score, loss: record.loss,
+      csat_score: record.csatScore||null,
+      failed_q: record.failedQ||[], failed_c: record.failedC||[],
+      has_crit: record.hasCrit||false, obs: record.obs||'', mes
+    }, {onConflict:'id'});
+  } catch(e){ console.warn('dbSaveMonitoria error:', e); }
+}
+async function dbLoadMonitorias(){
+  try {
+    const {data} = await _supabase.from('monitorias').select('*');
+    if(!data?.length) return;
+    records = {};
+    data.forEach(r=>{
+      const m = r.mes;
+      if(!records[m]) records[m]=[];
+      records[m].push({
+        id:r.id, proto:r.proto, agentId:r.agent_id, agentName:r.agent_name,
+        managerId:r.manager_id, managerName:r.manager_name,
+        teamId:r.team_id, teamName:r.team_name,
+        criteriaId:r.criteria_id, maxScore:r.max_score,
+        date:r.date, score:r.score, loss:r.loss,
+        csatScore:r.csat_score, failedQ:r.failed_q||[],
+        failedC:r.failed_c||[], hasCrit:r.has_crit||false, obs:r.obs||''
+      });
+    });
+    // Also sync months from records
+    const recordMonths = Object.keys(records);
+    recordMonths.forEach(m=>{ if(!months.includes(m)) months.push(m); });
+  } catch(e){ console.warn('dbLoadMonitorias error:', e); }
+}
+async function dbDeleteMonitoria(id){
+  await _supabase.from('monitorias').delete().eq('id',id);
+}
+async function dbDeleteUser(id){
+  await _supabase.from('usuarios').delete().eq('id',id);
+}
+async function dbDeleteTeam(id){
+  await _supabase.from('equipes').delete().eq('id',id);
+}
+
 // ── CRITERIA SYSTEM (per-team quality criteria templates) ──
 const CRITERIA_DEF = {
   id:'global',
@@ -897,7 +987,10 @@ function getAllCriteria(){
   return stored;
 }
 function getCriteria(cid){ return getAllCriteria()[cid||'global']||CRITERIA_DEF; }
-function saveCriteria(all){ ss(K.CRITERIA,all); }
+function saveCriteria(all){
+  ss(K.CRITERIA,all);
+  dbSaveConfig('criteria', all).catch(e=>console.warn(e));
+}
 function getTeamCriteria(teamId){
   const t=teams.find(x=>x.id===teamId);
   return getCriteria(t?.criteriaId||'global');
@@ -920,18 +1013,17 @@ let cfgUnlocked = false;
 let users, teams, months, records;
 
 function loadState(){
+  // Initialize from localStorage as fallback
   const s = ls(K.STATE);
   if(s){users=s.users;teams=s.teams;months=s.months;records=s.records;}
   else seedState();
-  // Ensure admin always has the correct email
-  const adm = users.find(u=>u.id==='admin');
-  if(adm && !adm.email) {
-    adm.email = 'rafaela.medeiros@igreenenergy.com.br';
-    adm.password = null;
-    saveState();
-  }
 }
-function saveState(){ ss(K.STATE,{users,teams,months,records}); }
+function saveState(){
+  // Save to localStorage as cache
+  ss(K.STATE,{users,teams,months,records});
+  // Also persist to Supabase in background
+  dbSaveAll().catch(e=>console.warn('saveState to DB error:',e));
+}
 
 // ── SEED DATA ──
 function seedState(){
@@ -1658,6 +1750,7 @@ function saveTeamGoals(){
     monPerOp,
   };
   ss(K.GOALS,all);
+  dbSaveConfig('goals', all).catch(e=>console.warn(e));
   const saved=document.getElementById('team-goal-saved');
   if(saved){saved.style.display='block';setTimeout(()=>saved.style.display='none',2500);}
 }
@@ -1791,7 +1884,9 @@ function renderRecords(){
 function delRecord(month,id){
   if(!confirm('Remover este registro?'))return;
   records[month]=(records[month]||[]).filter(r=>r.id!==id);
-  saveState();renderRecords();
+  saveState();
+  dbDeleteMonitoria(id).catch(e=>console.warn('delete monitoria error:',e));
+  renderRecords();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1957,15 +2052,24 @@ function cfgAddAgent(){
   if(!email||!email.includes('@')){showCfgFieldError('new-agent-email','E-mail válido é obrigatório.');return;}
   if(users.find(u=>u.email===email)){showCfgFieldError('new-agent-email','Este e-mail já está cadastrado.');return;}
   const id='op'+Date.now();
-  users.push({id,name:n,role:'operador',teamId:null,password:null,passwordSet:false,email});
+  const newUser = {id,name:n,role:'operador',teamId:null,password:null,passwordSet:true,email};
+  users.push(newUser);
   saveState();renderAdminSettings();buildModalDropdowns();
   document.getElementById('new-agent').value='';
   document.getElementById('new-agent-email').value='';
-  sendInviteEmail(n, email, 'operador');
+  // Create user in Supabase Auth with provisional password
+  const provisionalPass = 'iGreen@2025';
+  _supabase.auth.admin ? 
+    console.log('[INFO] Use Supabase dashboard to create user:', email) :
+    _supabase.auth.signUp({email, password: provisionalPass, options:{data:{name:n,role:'operador'}}})
+      .then(({error})=>{ if(error) console.warn('signUp error:',error.message); });
+  showInviteToast(`Operador <strong>${n}</strong> cadastrado!<br><span style="font-size:11px;color:rgba(255,255,255,.5)">Senha provisória: ${provisionalPass}</span>`);
 }
 function cfgRemAgent(id){
   if(!confirm('Remover operador? Registros históricos mantidos.'))return;
-  users=users.filter(u=>u.id!==id);saveState();renderAdminSettings();buildModalDropdowns();
+  users=users.filter(u=>u.id!==id);saveState();
+  dbDeleteUser(id).catch(e=>console.warn(e));
+  renderAdminSettings();buildModalDropdowns();
 }
 function cfgAddManager(){
   const n=document.getElementById('new-manager').value.trim();
@@ -1975,15 +2079,20 @@ function cfgAddManager(){
   if(users.find(u=>u.email===email)){showCfgFieldError('new-manager-email','Este e-mail já está cadastrado.');return;}
   const mid='m'+Date.now();const tid='t'+Date.now();
   teams.push({id:tid,name:n+"'s Equipe",managerId:mid,criteriaId:'global'});
-  users.push({id:mid,name:n,role:'gestor',teamId:tid,password:null,passwordSet:false,email});
+  users.push({id:mid,name:n,role:'gestor',teamId:tid,password:null,passwordSet:true,email});
   saveState();renderAdminSettings();buildModalDropdowns();
   document.getElementById('new-manager').value='';
   document.getElementById('new-manager-email').value='';
-  sendInviteEmail(n,email,'gestor');
+  const provisionalPass2 = 'iGreen@2025';
+  _supabase.auth.signUp({email, password: provisionalPass2, options:{data:{name:n,role:'gestor'}}})
+    .then(({error})=>{ if(error) console.warn('signUp error:',error.message); });
+  showInviteToast(`Gestor <strong>${n}</strong> cadastrado!<br><span style="font-size:11px;color:rgba(255,255,255,.5)">Senha provisória: ${provisionalPass2}</span>`);
 }
 function cfgRemManager(id){
   if(!confirm('Remover gestor?'))return;
-  users=users.filter(u=>u.id!==id);saveState();renderAdminSettings();
+  users=users.filter(u=>u.id!==id);saveState();
+  dbDeleteUser(id).catch(e=>console.warn(e));
+  renderAdminSettings();
 }
 function cfgAddAdmin(){
   const n=document.getElementById('new-admin').value.trim();
@@ -2039,7 +2148,7 @@ function cfgUnassign(uid){
 function cfgChangePin(){
   const v=document.getElementById('cfg-new-pin')?.value.trim();
   if(!/^\d{4}$/.test(v)){alert('PIN deve ter 4 dígitos numéricos.');return;}
-  adminPin=v;ss(K.PIN,v);document.getElementById('cfg-new-pin').value='';alert('PIN alterado!');
+  adminPin=v;ss(K.PIN,v);dbSaveConfig('pin',v).catch(e=>console.warn(e));document.getElementById('cfg-new-pin').value='';alert('PIN alterado!');
 }
 function lockCfg(){cfgUnlocked=false;document.getElementById('cfg-locked').style.display='block';document.getElementById('cfg-unlocked').style.display='none';}
 
@@ -2170,12 +2279,18 @@ function addEntry(){
   const mgr=users.find(u=>u.id===managerId);
   const tm=teams.find(t=>t.id===agent?.teamId);
   if(!records[month])records[month]=[];
-  records[month].push({
-    id:'r'+Date.now(),proto,agentId,agentName:agent?.name||'',
+  const newRecord = {
+    id:'r'+Date.now()+'_'+Math.random().toString(36).slice(2),
+    proto,agentId,agentName:agent?.name||'',
     managerId,managerName:mgr?.name||'',teamId:agent?.teamId||'',teamName:tm?.name||'',
+    criteriaId:agent?.teamId ? (teams.find(t=>t.id===agent.teamId)?.criteriaId||'global') : 'global',
+    maxScore:sc.maxScore,
     date,score,loss,csatScore,failedQ,failedC,hasCrit,obs
-  });
-  saveState();closeModal();refreshView();
+  };
+  records[month].push(newRecord);
+  saveState();
+  dbSaveMonitoria(month, newRecord).catch(e=>console.warn('save monitoria error:',e));
+  closeModal();refreshView();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2787,7 +2902,32 @@ _supabase.auth.onAuthStateChange(async (event, session) => {
 
 async function loginWithSession(session) {
   const email = session.user.email;
-  // Find matching user in local state by email
+
+  // Try to load data from Supabase first
+  const hasDbData = await dbLoadAll();
+  if(hasDbData){
+    await dbLoadMonitorias();
+    // Also sync criteria and goals from configuracoes
+    const criteria = await dbLoadConfig('criteria');
+    if(criteria) ss(K.CRITERIA, criteria);
+    const goals = await dbLoadConfig('goals');
+    if(goals) ss(K.GOALS, goals);
+    const pin = await dbLoadConfig('pin');
+    if(pin) { adminPin = pin; ss(K.PIN, pin); }
+    // Update localStorage cache
+    ss(K.STATE, {users, teams, months, records});
+  } else {
+    // No DB data yet — use localStorage / seed and push to DB
+    await dbSaveAll();
+    // Save all existing monitorias to DB
+    for(const mes of months){
+      for(const r of (records[mes]||[])){
+        await dbSaveMonitoria(mes, r);
+      }
+    }
+  }
+
+  // Find matching user by email
   const u = users.find(x => x.email && x.email.toLowerCase() === email.toLowerCase());
   if (u) {
     login(u);
