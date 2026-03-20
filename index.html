@@ -645,6 +645,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             </div>
           </div>
 
+          <!-- EQUIPES -->
+          <div class="card" style="margin-top:12px">
+            <div class="card-title" style="margin-bottom:.9rem">🏢 Equipes</div>
+            <div class="tag-row" id="cfg-teams"></div>
+            <div style="display:flex;gap:6px;margin-top:4px">
+              <input id="new-team-name" placeholder="Nome da nova equipe..." style="flex:1;font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;">
+              <button onclick="cfgAddTeam()" style="background:var(--ig-green);color:#fff;border:none;border-radius:var(--r);padding:6px 13px;font-size:12px;cursor:pointer;font-weight:700">+ Equipe</button>
+            </div>
+            <div style="font-size:11px;color:var(--text2);margin-top:6px">Ao remover uma equipe, os operadores vinculados ficam sem equipe.</div>
+          </div>
+
           <!-- VINCULAR -->
           <div class="card" style="margin-top:12px">
             <div class="card-title" style="margin-bottom:.9rem">Vincular Operadores às Equipes</div>
@@ -1499,6 +1510,7 @@ function renderAdminSettings(){
   document.getElementById('cfg-agents').innerHTML=ops.map(u=>renderUserTag(u,'cfgRemAgent')).join('');
   document.getElementById('cfg-managers').innerHTML=mgrs.map(u=>renderUserTag(u,'cfgRemManager')).join('');
   document.getElementById('cfg-months').innerHTML=months.map(m=>`<span class="tag">${m}<button class="tag-del" onclick="cfgRemMonth('${m}')">✕</button></span>`).join('');
+  renderCfgTeams();
   renderCfgAssign();
   cfgPopulateCriteriaTeamSel();
   cfgLoadTeamCriteria();
@@ -1579,6 +1591,37 @@ function cfgRemAdmin(id){
   if(id==='admin'){alert('Administrador principal não pode ser removido.');return;}
   if(!confirm('Remover administrador?')) return;
   users=users.filter(u=>u.id!==id); saveState(); renderAdminSettings();
+}
+
+// TEAMS
+function cfgAddTeam(){
+  const n=document.getElementById('new-team-name')?.value.trim();
+  if(!n){alert('Informe o nome da equipe.');return;}
+  if(teams.find(t=>t.name.toLowerCase()===n.toLowerCase())){alert('Já existe uma equipe com este nome.');return;}
+  const id='t'+Date.now();
+  teams.push({id,name:n,managerId:null,criteriaId:'global'});
+  saveState();
+  document.getElementById('new-team-name').value='';
+  renderAdminSettings();
+  showToast('Equipe <strong>'+n+'</strong> criada!');
+}
+function cfgRemTeam(id){
+  const t=teams.find(x=>x.id===id);
+  if(!t) return;
+  if(!confirm(`Remover equipe "${t.name}"? Operadores e gestores vinculados ficarão sem equipe.`)) return;
+  teams=teams.filter(x=>x.id!==id);
+  users.forEach(u=>{if(u.teamId===id) u.teamId=null;});
+  saveState();
+  _sb.from('equipes').delete().eq('id',id).catch(()=>{});
+  renderAdminSettings();
+}
+function renderCfgTeams(){
+  const el=document.getElementById('cfg-teams'); if(!el) return;
+  el.innerHTML=teams.map(t=>{
+    const mgr=users.find(u=>u.id===t.managerId);
+    const ops=users.filter(u=>u.teamId===t.id&&u.role==='operador');
+    return`<div class="user-tag active" style="min-width:160px"><div class="user-tag-name">${t.name}<button class="tag-del uta-btn remove" onclick="cfgRemTeam('${t.id}')">✕</button></div><div class="user-tag-email">Gestor: ${mgr?.name||'<span style="color:var(--amber)">não vinculado</span>'} · ${ops.length} op.</div></div>`;
+  }).join('')||'<span style="font-size:12px;color:var(--text3)">Nenhuma equipe cadastrada.</span>';
 }
 
 // MONTHS
@@ -1671,43 +1714,43 @@ function cfgLoadTeamCriteria(){
       </div>
     </div>
 
-    <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">Itens de Qualidade (penalidade por item)</div>
+    <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">Itens de Qualidade <span style="color:var(--text3);text-transform:none;font-weight:400">(desconta pontos quando NÃO feito)</span></div>
     <div id="cr-items-list">
       ${(cr.items||[]).map(it=>`
-        <div class="sc-row cr-item-row" data-id="${it.id}">
+        <div class="sc-row" data-id="${it.id}">
           <span style="color:var(--text3);font-size:12px;flex-shrink:0">⠿</span>
-          <input type="text" class="cr-item-label" value="${it.label.replace(/"/g,'&quot;').replace(/'/g,"&#39;")}" style="flex:1;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;min-width:0">
-          <input type="number" class="cr-item-penalty" min="0" max="200" value="${it.penalty}" style="width:54px;font-size:13px;font-weight:700;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);text-align:center;outline:none;flex-shrink:0">
+          <input type="text" value="${it.label.replace(/"/g,'&quot;').replace(/'/g,"&#39;")}" style="flex:1;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;min-width:0">
+          <input type="number" min="0" max="200" value="${it.penalty}" style="width:54px;font-size:13px;font-weight:700;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);text-align:center;outline:none;flex-shrink:0">
           <span style="font-size:11px;color:var(--text2)">pts</span>
           <button onclick="cfgRemCriteriaItem('${cid}','${it.id}')" class="del-btn">✕</button>
         </div>`).join('')}
     </div>
     <div style="display:flex;gap:6px;margin-top:8px;margin-bottom:16px">
       <input id="cr-new-label" placeholder="Novo item de qualidade..." style="flex:1;font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;">
-      <input id="cr-new-pts" type="number" min="0" placeholder="pts" style="width:54px;font-size:12px;padding:6px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:center;outline:none;">
+      <input id="cr-new-pts" type="number" min="0" placeholder="pts" style="width:60px;font-size:12px;padding:6px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:center;outline:none;">
       <button onclick="cfgAddCriteriaItem('${cid}')" style="background:var(--green);color:#fff;border:none;border-radius:var(--r);padding:6px 12px;font-size:12px;cursor:pointer;font-weight:700">+ Item</button>
     </div>
 
-    <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">Itens Críticos (zeram a monitoria)</div>
+    <div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:8px;text-transform:uppercase">⚠ Itens Críticos <span style="color:var(--text3);text-transform:none;font-weight:400">(zeram a monitoria inteira)</span></div>
     <div id="cr-critical-list">
       ${(cr.criticalItems||[]).map(it=>`
-        <div class="sc-row cr-crit-row" data-id="${it.id}" style="border-color:rgba(255,59,48,.3)">
-          <span style="color:var(--red);font-size:12px;flex-shrink:0">⚠</span>
-          <input type="text" class="cr-crit-label" value="${it.label.replace(/"/g,'&quot;').replace(/'/g,"&#39;")}" style="flex:1;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;min-width:0">
-          <span style="font-size:11px;color:var(--red);font-weight:700;flex-shrink:0">Zera</span>
+        <div class="sc-row" data-id="${it.id}" style="border-color:rgba(255,59,48,.35);background:rgba(255,59,48,.03)">
+          <span style="color:var(--red);font-size:14px;flex-shrink:0">⚠</span>
+          <input type="text" value="${it.label.replace(/"/g,'&quot;').replace(/'/g,"&#39;")}" style="flex:1;font-size:12px;padding:4px 8px;border:1px solid rgba(255,59,48,.25);border-radius:6px;background:var(--bg);color:var(--text);outline:none;min-width:0">
+          <span style="font-size:11px;color:var(--red);font-weight:700;flex-shrink:0;white-space:nowrap">Zera tudo</span>
           <button onclick="cfgRemCriticalItem('${cid}','${it.id}')" class="del-btn">✕</button>
-        </div>`).join('')}
+        </div>`).join('')||'<div style="font-size:12px;color:var(--text3);padding:8px 0">Nenhum item crítico cadastrado.</div>'}
     </div>
     <div style="display:flex;gap:6px;margin-top:8px;margin-bottom:16px">
-      <input id="cr-new-crit-label" placeholder="Novo item crítico..." style="flex:1;font-size:12px;padding:6px 9px;border:1px solid rgba(255,59,48,.4);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;">
-      <button onclick="cfgAddCriticalItem('${cid}')" style="background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:6px 12px;font-size:12px;cursor:pointer;font-weight:700">+ Crítico</button>
+      <input id="cr-new-crit-label" placeholder="Novo item crítico (ex: Passou informação errada)..." style="flex:1;font-size:12px;padding:6px 9px;border:1px solid rgba(255,59,48,.4);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;">
+      <button onclick="cfgAddCriticalItem('${cid}')" style="background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:6px 12px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap">+ Crítico</button>
     </div>
 
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button onclick="cfgSaveCurrentCriteria('${cid}')" class="btn btn-dark">💾 Salvar Modelo</button>
-      ${cid!=='global'?`<button onclick="cfgDeleteCriteria('${cid}')" class="btn btn-danger btn-sm">🗑 Excluir</button>`:''}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button onclick="cfgSaveCurrentCriteria('${cid}')" class="btn btn-dark" style="padding:10px 20px;font-size:13px">💾 Salvar Modelo</button>
+      ${cid!=='global'?`<button onclick="cfgDeleteCriteria('${cid}')" class="btn btn-danger btn-sm">🗑 Excluir Modelo</button>`:''}
     </div>
-    <div id="cr-save-feedback" style="font-size:12px;color:var(--green);margin-top:8px;display:none">✓ Modelo salvo com sucesso!</div>`;
+    <div id="cr-save-feedback" style="font-size:12px;color:var(--green);margin-top:8px;display:none;font-weight:700">✓ Modelo salvo com sucesso!</div>`;
 }
 
 function updMonthlyMax(){
@@ -1720,32 +1763,34 @@ function updMonthlyMax(){
 // ── SALVAR CRITÉRIOS — FUNÇÃO PRINCIPAL CORRIGIDA ──
 function cfgSaveCurrentCriteria(cid){
   const all=getAllCriteria();
-  const cr=all[cid]?{...all[cid]}:{...JSON.parse(JSON.stringify(CRITERIA_DEF)),id:cid};
+  // Clona profundamente para não mutar o original antes de salvar
+  const cr=JSON.parse(JSON.stringify(all[cid]||{...CRITERIA_DEF,id:cid}));
 
   // Nome e configurações gerais
   const nameEl=document.getElementById('cr-name');
   const maxEl=document.getElementById('cr-maxscore');
   const monEl=document.getElementById('cr-monperop');
-  if(nameEl) cr.name=nameEl.value.trim()||cr.name;
-  if(maxEl) cr.maxScore=parseInt(maxEl.value)||60;
-  if(monEl) cr.monPerOp=parseInt(monEl.value)||8;
+  if(nameEl&&nameEl.value.trim()) cr.name=nameEl.value.trim();
+  if(maxEl&&maxEl.value) cr.maxScore=parseInt(maxEl.value)||60;
+  if(monEl&&monEl.value) cr.monPerOp=parseInt(monEl.value)||8;
 
-  // Itens de qualidade
-  const itemRows=document.querySelectorAll('.cr-item-row');
+  // Itens de qualidade — busca por data-cid para garantir que pega só os do modelo atual
   const items=[];
-  itemRows.forEach(row=>{
-    const lbl=row.querySelector('.cr-item-label')?.value.trim()||'';
-    const pen=parseInt(row.querySelector('.cr-item-penalty')?.value)||0;
-    if(lbl) items.push({id:row.dataset.id,label:lbl,penalty:pen});
+  document.querySelectorAll('#cr-items-list .sc-row').forEach(row=>{
+    const inputs=row.querySelectorAll('input');
+    if(inputs.length<2) return;
+    const lbl=inputs[0].value.trim();
+    const pen=parseInt(inputs[1].value)||0;
+    if(lbl) items.push({id:row.dataset.id||('qi'+Date.now()+Math.random()),label:lbl,penalty:pen});
   });
   cr.items=items;
 
-  // Itens críticos — CORRIGIDO: agora também salva
-  const critRows=document.querySelectorAll('.cr-crit-row');
+  // Itens críticos
   const criticalItems=[];
-  critRows.forEach(row=>{
-    const lbl=row.querySelector('.cr-crit-label')?.value.trim()||'';
-    if(lbl) criticalItems.push({id:row.dataset.id,label:lbl});
+  document.querySelectorAll('#cr-critical-list .sc-row').forEach(row=>{
+    const inp=row.querySelector('input[type="text"]');
+    const lbl=inp?.value.trim()||'';
+    if(lbl) criticalItems.push({id:row.dataset.id||('cc'+Date.now()+Math.random()),label:lbl});
   });
   cr.criticalItems=criticalItems;
 
@@ -1756,6 +1801,7 @@ function cfgSaveCurrentCriteria(cid){
   // Feedback visual
   const fb=document.getElementById('cr-save-feedback');
   if(fb){fb.style.display='block';setTimeout(()=>fb.style.display='none',2500);}
+  showToast('✓ Modelo <strong>'+cr.name+'</strong> salvo!');
 }
 
 function cfgAddCriteriaItem(cid){
