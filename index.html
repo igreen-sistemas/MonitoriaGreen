@@ -1005,6 +1005,9 @@ function doLogout(){
   currentUser=null;cfgUnlocked=false;
   document.getElementById('app').style.display='none';
   document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-loading').style.display='none';
+  document.getElementById('login-form-wrap').style.display='block';
+  document.getElementById('login-email').value='';
   document.getElementById('login-pass').value='';
   document.getElementById('login-error').textContent='';
 }
@@ -1510,7 +1513,7 @@ function renderAdminSettings(){
   document.getElementById('cfg-locked').style.display='none';document.getElementById('cfg-unlocked').style.display='block';
   renderCfgTeams();
   const ops=users.filter(u=>u.role==='operador'),mgrs=users.filter(u=>u.role==='gestor'),admins=users.filter(u=>u.role==='admin');
-  function renderUserTag(u){return`<div class="user-tag ${u.passwordSet===false?'pending':'active'}"><div class="user-tag-name">${u.name}<span class="user-tag-status ${u.passwordSet===false?'uts-pending':'uts-active'}">${u.passwordSet===false?'⏳ Pendente':'✓ Ativo'}</span>${u.id!=='admin'?`<button class="tag-del uta-btn remove" onclick="cfgRemUser('${u.id}')" title="Remover">✕</button>`:''}</div><div class="user-tag-email">${u.email||'<span style="color:var(--red)">sem e-mail</span>'}</div>${u.passwordSet===false?`<div class="user-tag-actions"><button class="uta-btn resend" onclick="resendInvite('${u.id}')">↺ Reenviar</button></div>`:''}</div>`;}
+  function renderUserTag(u){return`<div class="user-tag ${u.passwordSet===false?'pending':'active'}"><div class="user-tag-name">${u.name}<span class="user-tag-status ${u.passwordSet===false?'uts-pending':'uts-active'}">${u.passwordSet===false?'⏳ Pendente':'✓ Ativo'}</span><button class="tag-del uta-btn remove" onclick="cfgRemUser('${u.id}')" title="Remover">✕</button></div><div class="user-tag-email">${u.email||'<span style="color:var(--red)">sem e-mail</span>'}</div><div class="user-tag-actions"><button class="uta-btn resend" onclick="resendInvite('${u.id}')">✏️ Senha</button></div></div>`;}
   document.getElementById('cfg-admins').innerHTML=admins.map(renderUserTag).join('');
   document.getElementById('cfg-agents').innerHTML=ops.map(renderUserTag).join('');
   document.getElementById('cfg-managers').innerHTML=mgrs.map(renderUserTag).join('');
@@ -2080,6 +2083,47 @@ function exportPDF(containerId,personName){
 const SUPABASE_URL='https://eiiurwzccrliclnpuuii.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpaXVyd3pjY3JsaWNsbnB1dWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NDczNzEsImV4cCI6MjA4OTMyMzM3MX0.BzUg_f6CvNfie0tRXpjGov-tCUyfdTLODg1pUMhWCso';
 const _supabase=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+// ══════════════════════════════════════════════════════════
+// SUPABASE PERSISTÊNCIA
+// Tabelas necessárias no Supabase (execute no SQL Editor):
+//
+// create table if not exists ig_state (
+//   id text primary key,
+//   payload jsonb not null,
+//   updated_at timestamptz default now()
+// );
+// alter table ig_state enable row level security;
+// create policy "allow all" on ig_state for all using (true) with check (true);
+// ══════════════════════════════════════════════════════════
+let _syncTimeout=null;
+
+async function dbSave(){
+  try{
+    await _supabase.from('ig_state').upsert({
+      id:'main',
+      payload:{users,teams,months,records},
+      updated_at:new Date().toISOString()
+    },{onConflict:'id'});
+  }catch(e){console.warn('[DB save error]',e);}
+}
+
+async function dbLoad(){
+  try{
+    const{data,error}=await _supabase.from('ig_state').select('payload').eq('id','main').single();
+    if(error||!data)return false;
+    const p=data.payload;
+    if(p?.users?.length){users=p.users;teams=p.teams;months=p.months;records=p.records;ss(K.STATE,{users,teams,months,records});return true;}
+    return false;
+  }catch(e){console.warn('[DB load error]',e);return false;}
+}
+
+// Salva com debounce (evita muitas chamadas seguidas)
+function saveState(){
+  ss(K.STATE,{users,teams,months,records});
+  clearTimeout(_syncTimeout);
+  _syncTimeout=setTimeout(()=>dbSave(),1500);
+}
 
 // ══════════════════════════════════════════════════════════
 // BOOT
