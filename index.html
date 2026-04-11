@@ -324,14 +324,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <span class="forgot-link" onclick="showScreen('recuperar-senha')">Esqueci minha senha</span>
       <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
       <div class="login-error" id="login-error"></div>
-      <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.08);">
-        <div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:8px;text-align:center">Acesso rápido (demo)</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-          <button onclick="demoLogin('admin')" style="background:rgba(255,149,0,.2);border:1px solid rgba(255,149,0,.3);border-radius:var(--r);padding:7px 4px;font-size:11px;color:#FF9500;cursor:pointer;">Admin</button>
-          <button onclick="demoLogin('m1')" style="background:rgba(0,122,255,.2);border:1px solid rgba(0,122,255,.3);border-radius:var(--r);padding:7px 4px;font-size:11px;color:#007AFF;cursor:pointer;">Gestor</button>
-          <button onclick="demoLogin('op1')" style="background:rgba(52,199,89,.2);border:1px solid rgba(52,199,89,.3);border-radius:var(--r);padding:7px 4px;font-size:11px;color:#34C759;cursor:pointer;">Operador</button>
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -605,7 +597,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             <button id="btn-del-batch" onclick="deleteSelectedRecords()" class="btn btn-danger btn-sm" style="display:none">🗑 Excluir Selecionados</button>
           </div>
         </div>
-        <!-- Batch bar (shows when items selected) -->
         <div class="batch-bar no-print" id="batch-bar" style="display:none">
           <span id="batch-count">0 selecionados</span>
           <button class="btn-pdf" onclick="exportRecordsPDF()">⬇ Exportar PDF</button>
@@ -645,15 +636,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
               <button class="btn btn-sec btn-sm" onclick="lockCfg()">Sair</button>
             </div>
           </div>
-
-          <!-- ══ CORREÇÃO 1: EQUIPES — criar/remover + escolher modelo ══ -->
           <div class="card" style="margin-bottom:12px">
             <div class="card-hd">
               <span class="card-title">🏢 Equipes</span>
               <button onclick="cfgShowAddTeam()" class="btn btn-dark btn-sm">+ Nova Equipe</button>
             </div>
             <div id="cfg-teams-list"></div>
-            <!-- Form nova equipe -->
             <div id="add-team-form" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-top:10px">
               <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em">Nova Equipe</div>
               <div class="fr2">
@@ -670,10 +658,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
               <div id="add-team-err" style="font-size:11px;color:var(--red);margin-top:6px;"></div>
             </div>
           </div>
-
-          <!-- Usuários -->
           <div class="g2" style="align-items:start">
-            <!-- ══ CORREÇÃO 3: Operadores com Supabase Auth ══ -->
             <div class="card">
               <div class="card-title" style="margin-bottom:.9rem">👥 Usuários / Operadores</div>
               <div class="tag-row" id="cfg-agents"></div>
@@ -682,7 +667,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 <input id="new-agent-email" placeholder="E-mail do operador *" type="email" style="font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;width:100%">
                 <button onclick="cfgAddAgent()" style="background:var(--ig-green);color:#fff;border:none;border-radius:var(--r);padding:6px 13px;font-size:12px;cursor:pointer;font-weight:700">+ Adicionar</button>
               </div>
-              <div style="font-size:11px;color:var(--text2)">Registros históricos são mantidos ao remover. Um e-mail com senha provisória será enviado.</div>
+              <div style="font-size:11px;color:var(--text2)">Registros históricos são mantidos ao remover.</div>
             </div>
             <div class="card">
               <div class="card-title" style="margin-bottom:.9rem">🧑‍💼 Gestores</div>
@@ -694,8 +679,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
               </div>
             </div>
           </div>
-
-          <!-- Admins -->
           <div class="card" style="margin-top:12px">
             <div class="card-title" style="margin-bottom:.9rem">👑 Administradores</div>
             <div class="tag-row" id="cfg-admins"></div>
@@ -705,14 +688,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
               <button onclick="cfgAddAdmin()" style="background:var(--amber);color:#fff;border:none;border-radius:var(--r);padding:6px 13px;font-size:12px;cursor:pointer;font-weight:700">+ Adicionar Admin</button>
             </div>
           </div>
-
-          <!-- Assign -->
           <div class="card" style="margin-top:12px">
             <div class="card-title" style="margin-bottom:.9rem">Vincular Operadores às Equipes</div>
             <div id="cfg-assign"></div>
           </div>
-
-          <!-- Meses -->
           <div class="card" style="margin-top:12px">
             <div class="card-title" style="margin-bottom:.9rem">Meses disponíveis</div>
             <div class="tag-row" id="cfg-months"></div>
@@ -721,8 +700,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
               <button onclick="cfgAddMonth()">+ Mês</button>
             </div>
           </div>
-
-          <!-- ══ CORREÇÃO 2: Critérios por Equipe ══ -->
           <div class="card" style="margin-top:12px">
             <div class="card-title" style="margin-bottom:.9rem">🎯 Critérios por Equipe (Modelos de Avaliação)</div>
             <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Cada equipe pode usar um modelo de avaliação diferente.</div>
@@ -734,8 +711,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             </div>
             <div id="cfg-criteria-editor"></div>
           </div>
-
-          <!-- Pontuação Global -->
           <div class="card" style="margin-top:12px">
             <div class="card-title" style="margin-bottom:.9rem">Pontuação — Modelo Padrão Global</div>
             <div class="g2" style="align-items:start">
@@ -829,9 +804,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-// CONSTANTS & STORAGE
-// ══════════════════════════════════════════════════════════
 const K={STATE:'qd_state_v7',CRITERIA:'qd_criteria_v7',PIN:'qd_pin_v6',GOALS:'qd_goals_v6',SCORING:'qd_scoring_v6'};
 function ls(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}}
 function ss(k,v){localStorage.setItem(k,JSON.stringify(v))}
@@ -869,9 +841,6 @@ let cfgUnlocked=false;
 let users,teams,months,records;
 let selectedRecords=new Set();
 
-// ══════════════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════════════
 function loadState(){
   const s=ls(K.STATE);
   if(s){users=s.users;teams=s.teams;months=s.months;records=s.records;}
@@ -881,83 +850,11 @@ function loadState(){
   if(!months)months=[];
   if(!records)records={};
 }
-function saveState(){ss(K.STATE,{users,teams,months,records});}
 function seedState(){
-  teams=[
-    {id:'t1',name:'Equipe Alpha',managerId:'m1',criteriaId:'global'},
-    {id:'t2',name:'Equipe Beta',managerId:'m2',criteriaId:'criteria_beta'},
-  ];
-  users=[
-    {id:'admin',name:'Rafaela Medeiros',role:'admin',teamId:null,password:'1234',email:'rafaela.medeiros@igreenenergy.com.br',passwordSet:true},
-    {id:'m1',name:'João Supervisor',role:'gestor',teamId:'t1',password:'1234',email:'joao@igreenenergy.com.br',passwordSet:true},
-    {id:'m2',name:'Maria Gerente',role:'gestor',teamId:'t2',password:'1234',email:'maria@igreenenergy.com.br',passwordSet:true},
-    {id:'op1',name:'Ana Lima',role:'operador',teamId:'t1',password:'1234',email:'',passwordSet:true},
-    {id:'op2',name:'Carlos Melo',role:'operador',teamId:'t1',password:'1234',email:'',passwordSet:true},
-    {id:'op3',name:'Fernanda Costa',role:'operador',teamId:'t1',password:'1234',email:'',passwordSet:true},
-    {id:'op4',name:'Diego Rocha',role:'operador',teamId:'t1',password:'1234',email:'',passwordSet:true},
-    {id:'op5',name:'Patricia Souza',role:'operador',teamId:'t1',password:'1234',email:'',passwordSet:true},
-    {id:'op6',name:'Rafael Mendes',role:'operador',teamId:'t1',password:'1234',email:'',passwordSet:true},
-    {id:'op7',name:'Juliana Ferreira',role:'operador',teamId:'t2',password:'1234',email:'',passwordSet:true},
-    {id:'op8',name:'Bruno Alves',role:'operador',teamId:'t2',password:'1234',email:'',passwordSet:true},
-    {id:'op9',name:'Camila Nunes',role:'operador',teamId:'t2',password:'1234',email:'',passwordSet:true},
-    {id:'op10',name:'Lucas Pereira',role:'operador',teamId:'t2',password:'1234',email:'',passwordSet:true},
-  ];
-  months=['Jan/2025','Fev/2025','Mar/2025','Abr/2025','Mai/2025','Jun/2025'];
-  records={};
-  const betaCrit={id:'criteria_beta',name:'Modelo Beta',maxScore:60,monPerOp:8,
-    items:[
-      {id:'b1',label:'Não apresentou soluções alternativas',penalty:15},
-      {id:'b2',label:'Não registrou ocorrência no sistema',penalty:10},
-      {id:'b3',label:'Não utilizou linguagem empática',penalty:8},
-      {id:'b4',label:'Não confirmou entendimento do cliente',penalty:7},
-      {id:'b5',label:'Não ofereceu canal de retorno',penalty:5},
-    ],
-    criticalItems:[
-      {id:'bc1',label:'Compartilhou dados de outros clientes'},
-      {id:'bc2',label:'Encerrou chamada sem resolução'},
-      {id:'bc3',label:'Desacordou com política da empresa'},
-      {id:'bc4',label:'Intimidou o cliente'},
-    ]
-  };
-  ss(K.CRITERIA,{global:CRITERIA_DEF,criteria_beta:betaCrit});
-  function rng(a,b){return Math.round(Math.random()*(b-a)+a);}
-  ['Mar/2025','Abr/2025','Mai/2025'].forEach(m=>{
-    records[m]=[];
-    users.filter(u=>u.role==='operador').forEach(op=>{
-      const team=teams.find(t=>t.id===op.teamId);
-      const sc=getCriteria(team?.criteriaId||'global');
-      const n=rng(4,8);
-      for(let i=0;i<n;i++){
-        const hasCrit=Math.random()<0.07;
-        const failQ=sc.items.filter(()=>Math.random()<0.3);
-        const score=hasCrit?0:Math.max(0,sc.maxScore-failQ.reduce((s,q)=>s+q.penalty,0));
-        const loss=sc.maxScore-score;
-        const mgr=users.find(u=>u.id===team?.managerId);
-        const dy=rng(1,28);
-        const mNum={Jan:'01',Fev:'02',Mar:'03',Abr:'04',Mai:'05',Jun:'06'}[m.slice(0,3)];
-        records[m].push({
-          id:'r'+Date.now()+'_'+Math.random().toString(36).slice(2),
-          proto:`${m.slice(0,3)}${rng(10000,99999)}`,
-          agentId:op.id,agentName:op.name,
-          managerId:team?.managerId||'',managerName:mgr?.name||'',
-          teamId:op.teamId,teamName:team?.name||'',
-          criteriaId:team?.criteriaId||'global',maxScore:sc.maxScore,
-          date:`2025-${mNum}-${String(dy).padStart(2,'0')}`,
-          score,loss,csatScore:hasCrit?rng(10,50):rng(60,100),
-          failedQ:hasCrit?[]:failQ.map(q=>q.label),
-          failedC:hasCrit?[sc.criticalItems[rng(0,sc.criticalItems.length-1)].label]:[],
-          hasCrit,obs:''
-        });
-      }
-    });
-  });
-  ss(K.GOALS,{t1:{minScore:42,csatGoal:85,monGoal:8,monPerOp:8},t2:{minScore:36,csatGoal:80,monGoal:8,monPerOp:8}});
+  teams=[];users=[];months=[];records={};
   saveState();
 }
 
-// ══════════════════════════════════════════════════════════
-// AUTH
-// ══════════════════════════════════════════════════════════
 let currentUser=null,currentMonth='',currentTeamFilter='',charts={};
 const AV_BG=['#D1F2D9','#E3F0FF','#FEF3D0','#F2E5FF','#FFE5EA'];
 const AV_FG=['#1A6330','#0040A0','#7A4800','#4A0080','#7A0020'];
@@ -971,11 +868,6 @@ function classify(s,mx){
   if(s>=mx*.7)return{l:'Bom',c:'bg-green'};
   if(s>=mx*.5)return{l:'Regular',c:'bg-amber'};
   return{l:'Crítico',c:'bg-red'};
-}
-
-function demoLogin(uid){
-  const u=users.find(x=>x.id===uid);
-  if(u){login(u);}
 }
 
 function doLogin(){
@@ -1012,9 +904,6 @@ function doLogout(){
   document.getElementById('login-error').textContent='';
 }
 
-// ══════════════════════════════════════════════════════════
-// HEADER & NAV
-// ══════════════════════════════════════════════════════════
 function buildHeader(){
   const u=currentUser,st=avStyle(u.name);
   const av=document.getElementById('hdr-avatar');
@@ -1069,9 +958,6 @@ function renderView(id){
   else if(id==='admin-settings')renderAdminSettings();
 }
 
-// ══════════════════════════════════════════════════════════
-// DATA HELPERS
-// ══════════════════════════════════════════════════════════
 function getMonthData(month){
   if(month==='__ALL__')return months.flatMap(m=>records[m]||[]);
   return records[month]||[];
@@ -1112,7 +998,6 @@ function kpi(id,val,cls,sub){
   const s=document.getElementById(id+'-s');if(s)s.textContent=sub||'';
 }
 function renderDist(elId,data,total){
-  const mx=data[0]?.maxScore||60;
   const cats=[
     {l:'Excelente',sub:'≥90%',color:'#34C759',fn:r=>r.score>=r.maxScore*.9},
     {l:'Bom',sub:'70–89%',color:'#007AFF',fn:r=>r.score>=r.maxScore*.7&&r.score<r.maxScore*.9},
@@ -1126,9 +1011,6 @@ function renderDist(elId,data,total){
   }).join('');
 }
 
-// ══════════════════════════════════════════════════════════
-// ADMIN VIEWS
-// ══════════════════════════════════════════════════════════
 function renderAdminOverview(){
   const data=filtered(currentMonth),total=data.length;
   const avg=total?avgOf(data,'score'):0,csatAvg=csat(data);
@@ -1209,9 +1091,6 @@ function openOpDetailAdmin(uid){
   document.querySelector('[data-v="admin-ranking"]')?.classList.add('active');
 }
 
-// ══════════════════════════════════════════════════════════
-// GESTOR VIEWS
-// ══════════════════════════════════════════════════════════
 function renderGestorOverview(){
   const team=teams.find(t=>t.id===currentUser.teamId);
   const data=filtered(currentMonth),total=data.length;
@@ -1334,9 +1213,6 @@ function saveTeamGoals(){
   if(saved){saved.style.display='block';setTimeout(()=>saved.style.display='none',2500);}
 }
 
-// ══════════════════════════════════════════════════════════
-// OPERADOR VIEWS
-// ══════════════════════════════════════════════════════════
 function renderOpDashboard(){
   const uid=currentUser.id,data=opData(currentMonth,uid),total=data.length;
   const avgLoss=total?avgOf(data,'loss'):0,csatAvg=csat(data),avgScore=total?avgOf(data,'score'):0;
@@ -1377,9 +1253,6 @@ function renderOpEvolution(){
   }).join('');
 }
 
-// ══════════════════════════════════════════════════════════
-// CORREÇÃO 4: RECORDS — Excluir em lote + Exportar PDF
-// ══════════════════════════════════════════════════════════
 function renderRecords(){
   selectedRecords.clear();
   updateBatchBar();
@@ -1414,14 +1287,11 @@ function findRecordMonth(id){
   for(const m of months){if((records[m]||[]).find(r=>r.id===id))return m;}
   return null;
 }
-
 function toggleRecord(id,checked){
-  if(checked)selectedRecords.add(id);
-  else selectedRecords.delete(id);
+  if(checked)selectedRecords.add(id);else selectedRecords.delete(id);
   const row=document.getElementById('row-'+id);
   if(row)row.className=checked?'selected':'';
   updateBatchBar();
-  // Update "select all" checkbox state
   const allCk=document.getElementById('rec-check-all');
   if(allCk){
     const allCbs=document.querySelectorAll('#rec-tbody input[type=checkbox]');
@@ -1429,21 +1299,13 @@ function toggleRecord(id,checked){
     allCk.checked=allCbs.length>0&&selectedRecords.size===allCbs.length;
   }
 }
-
 function toggleAllRecords(checked){
   document.querySelectorAll('#rec-tbody input[type=checkbox]').forEach(cb=>{
-    const row=cb.closest('tr');
-    const id=row?.id?.replace('row-','');
-    if(id){
-      cb.checked=checked;
-      if(checked)selectedRecords.add(id);
-      else selectedRecords.delete(id);
-      row.className=checked?'selected':'';
-    }
+    const row=cb.closest('tr');const id=row?.id?.replace('row-','');
+    if(id){cb.checked=checked;if(checked)selectedRecords.add(id);else selectedRecords.delete(id);row.className=checked?'selected':'';}
   });
   updateBatchBar();
 }
-
 function clearSelection(){
   selectedRecords.clear();
   document.querySelectorAll('#rec-tbody input[type=checkbox]').forEach(cb=>{cb.checked=false;});
@@ -1452,35 +1314,26 @@ function clearSelection(){
   if(allCk){allCk.checked=false;allCk.indeterminate=false;}
   updateBatchBar();
 }
-
 function updateBatchBar(){
-  const bar=document.getElementById('batch-bar');
-  if(!bar)return;
-  const n=selectedRecords.size;
-  bar.style.display=n>0?'flex':'none';
+  const bar=document.getElementById('batch-bar');if(!bar)return;
+  const n=selectedRecords.size;bar.style.display=n>0?'flex':'none';
   const countEl=document.getElementById('batch-count');
   if(countEl)countEl.textContent=`${n} selecionado${n!==1?'s':''}`;
 }
-
 function deleteSelectedRecords(){
   if(!selectedRecords.size){alert('Nenhum registro selecionado.');return;}
   if(!confirm(`Excluir ${selectedRecords.size} registro${selectedRecords.size!==1?'s':''}? Esta ação não pode ser desfeita.`))return;
-  for(const id of selectedRecords){
-    const m=findRecordMonth(id);
-    if(m)records[m]=(records[m]||[]).filter(r=>r.id!==id);
-  }
+  for(const id of selectedRecords){const m=findRecordMonth(id);if(m)records[m]=(records[m]||[]).filter(r=>r.id!==id);}
   saveState();renderRecords();
   showInviteToast(`<strong>${selectedRecords.size||0} registros excluídos</strong>`);
   selectedRecords.clear();updateBatchBar();
 }
-
 function delRecord(month,id){
   if(!confirm('Remover este registro?'))return;
   if(month)records[month]=(records[month]||[]).filter(r=>r.id!==id);
   else for(const m of months)records[m]=(records[m]||[]).filter(r=>r.id!==id);
   saveState();renderRecords();
 }
-
 function exportRecordsPDF(){
   const ids=selectedRecords.size>0?[...selectedRecords]:null;
   let data=getMonthData(currentMonth);
@@ -1493,21 +1346,12 @@ function exportRecordsPDF(){
     const cls=classify(r.score,r.maxScore),pend=[...r.failedQ,...r.failedC];
     return`<tr><td>${r.date.slice(8)+'/'+r.date.slice(5,7)}</td><td style="font-family:monospace">${r.proto}</td><td>${r.agentName}</td><td>${r.managerName||'—'}</td><td style="text-align:center;font-weight:700;color:${scoreColor(r.score,r.maxScore)}">${r.score}/${r.maxScore||60}</td><td style="text-align:center;color:#FF3B30;font-weight:700">−${r.loss}</td><td>${pend.slice(0,2).join(', ')+(pend.length>2?` +${pend.length-2} mais`:'')}</td><td style="text-align:center">${r.csatScore||'—'}%</td><td style="text-align:center"><span style="font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700;background:${cls.c==='bg-green'?'#d1f2d9':cls.c==='bg-amber'?'#fef3d0':cls.c==='bg-dark'?'#2c2c2e':'#fee5e5'};color:${cls.c==='bg-green'?'#1a6330':cls.c==='bg-amber'?'#7a4800':cls.c==='bg-dark'?'#fff':'#7a1515'}">${cls.l}</span></td></tr>`;
   }).join('');
-  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Registros — iGreen Performance</title>
-  <style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:2rem;font-size:12px;color:#1c1c1e;}h1{font-size:20px;font-weight:800;margin-bottom:.25rem;}p{color:#6e6e73;margin-bottom:1.5rem;font-size:11px;}table{width:100%;border-collapse:collapse;}th{font-size:9px;font-weight:700;color:#6e6e73;text-align:left;padding:6px 8px;border-bottom:1px solid #e0e0e5;text-transform:uppercase;background:#f5f5f7;}td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:middle;}.footer{margin-top:2rem;font-size:10px;color:#aeaeb2;border-top:2px solid #00cc44;padding-top:1rem;text-align:center;}@page{margin:1.5cm;}</style></head>
-  <body><h1>Registros de Monitoria — iGreen Performance</h1><p>${ids?ids.length+' registros selecionados':data.length+' registros'} · ${currentMonth==='__ALL__'?'Todos os Meses':currentMonth} · Exportado em ${now}</p>
-  <table><thead><tr><th>Data</th><th>Protocolo</th><th>Operador</th><th>Gestor</th><th>Pontuação</th><th>Pts Perdidos</th><th>Pendências</th><th>Qualidade</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
-  <div class="footer">iGreen Performance · Sistema de Monitoria de Qualidade · ${now}</div>
-  </body></html>`;
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Registros — iGreen Performance</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:2rem;font-size:12px;color:#1c1c1e;}h1{font-size:20px;font-weight:800;margin-bottom:.25rem;}p{color:#6e6e73;margin-bottom:1.5rem;font-size:11px;}table{width:100%;border-collapse:collapse;}th{font-size:9px;font-weight:700;color:#6e6e73;text-align:left;padding:6px 8px;border-bottom:1px solid #e0e0e5;text-transform:uppercase;background:#f5f5f7;}td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:middle;}.footer{margin-top:2rem;font-size:10px;color:#aeaeb2;border-top:2px solid #00cc44;padding-top:1rem;text-align:center;}@page{margin:1.5cm;}</style></head><body><h1>Registros de Monitoria — iGreen Performance</h1><p>${ids?ids.length+' registros selecionados':data.length+' registros'} · ${currentMonth==='__ALL__'?'Todos os Meses':currentMonth} · Exportado em ${now}</p><table><thead><tr><th>Data</th><th>Protocolo</th><th>Operador</th><th>Gestor</th><th>Pontuação</th><th>Pts Perdidos</th><th>Pendências</th><th>Qualidade</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table><div class="footer">iGreen Performance · Sistema de Monitoria de Qualidade · ${now}</div></body></html>`;
   const win=window.open('','_blank','width=1100,height=700');
   if(!win){alert('Popup bloqueado. Permita popups para exportar.');return;}
-  win.document.write(html);win.document.close();win.focus();
-  setTimeout(()=>win.print(),500);
+  win.document.write(html);win.document.close();win.focus();setTimeout(()=>win.print(),500);
 }
 
-// ══════════════════════════════════════════════════════════
-// ADMIN: SETTINGS
-// ══════════════════════════════════════════════════════════
 function renderAdminSettings(){
   if(!cfgUnlocked){document.getElementById('cfg-locked').style.display='block';document.getElementById('cfg-unlocked').style.display='none';return;}
   document.getElementById('cfg-locked').style.display='none';document.getElementById('cfg-unlocked').style.display='block';
@@ -1518,16 +1362,10 @@ function renderAdminSettings(){
   document.getElementById('cfg-agents').innerHTML=ops.map(renderUserTag).join('');
   document.getElementById('cfg-managers').innerHTML=mgrs.map(renderUserTag).join('');
   document.getElementById('cfg-months').innerHTML=months.map(m=>`<span class="tag">${m}<button class="tag-del" onclick="cfgRemMonth('${m}')">✕</button></span>`).join('');
-  renderCfgAssign();
-  renderCfgScoringItems();
-  cfgPopulateCriteriaTeamSel();
-  cfgLoadTeamCriteria();
+  renderCfgAssign();renderCfgScoringItems();cfgPopulateCriteriaTeamSel();cfgLoadTeamCriteria();
   const mxEl=document.getElementById('cfg-max-score');if(mxEl)mxEl.value=getCriteria('global').maxScore;
 }
 
-// ══════════════════════════════════════════════════════════
-// CORREÇÃO 1: EQUIPES — criar/remover + escolher modelo
-// ══════════════════════════════════════════════════════════
 function renderCfgTeams(){
   const el=document.getElementById('cfg-teams-list');if(!el)return;
   if(!teams.length){el.innerHTML='<p style="font-size:12px;color:var(--text2)">Nenhuma equipe cadastrada.</p>';return;}
@@ -1535,43 +1373,17 @@ function renderCfgTeams(){
   el.innerHTML=teams.map(t=>{
     const mgr=users.find(u=>u.id===t.managerId),ops=users.filter(u=>u.teamId===t.id&&u.role==='operador');
     const critName=allCrit[t.criteriaId||'global']?.name||'Padrão Global';
-    return`<div class="team-cfg-card">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">
-        <div style="flex:1">
-          <div style="font-size:14px;font-weight:700;margin-bottom:4px">${t.name}</div>
-          <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Gestor: ${mgr?.name||'—'} · ${ops.length} operador${ops.length!==1?'es':''}</div>
-          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-            <span class="badge bg-blue" style="font-size:10px">📋 ${critName}</span>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:5px;min-width:140px">
-          <select id="team-model-${t.id}" style="font-size:11px;padding:4px 7px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;" onchange="cfgSetTeamCriteria('${t.id}',this.value)">
-            ${Object.values(allCrit).map(cr=>`<option value="${cr.id}" ${(t.criteriaId||'global')===cr.id?'selected':''}>${cr.id==='global'?'🌐 ':''} ${cr.name}</option>`).join('')}
-          </select>
-          <button onclick="cfgRemTeam('${t.id}')" class="btn btn-danger btn-sm" style="font-size:11px">🗑 Excluir Equipe</button>
-        </div>
-      </div>
-    </div>`;
+    return`<div class="team-cfg-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap"><div style="flex:1"><div style="font-size:14px;font-weight:700;margin-bottom:4px">${t.name}</div><div style="font-size:12px;color:var(--text2);margin-bottom:4px">Gestor: ${mgr?.name||'—'} · ${ops.length} operador${ops.length!==1?'es':''}</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="badge bg-blue" style="font-size:10px">📋 ${critName}</span></div></div><div style="display:flex;flex-direction:column;gap:5px;min-width:140px"><select id="team-model-${t.id}" style="font-size:11px;padding:4px 7px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;" onchange="cfgSetTeamCriteria('${t.id}',this.value)">${Object.values(allCrit).map(cr=>`<option value="${cr.id}" ${(t.criteriaId||'global')===cr.id?'selected':''}>${cr.id==='global'?'🌐 ':''} ${cr.name}</option>`).join('')}</select><button onclick="cfgRemTeam('${t.id}')" class="btn btn-danger btn-sm" style="font-size:11px">🗑 Excluir Equipe</button></div></div></div>`;
   }).join('');
 }
 
 function cfgShowAddTeam(){
-  const form=document.getElementById('add-team-form');
-  if(!form)return;
+  const form=document.getElementById('add-team-form');if(!form)return;
   form.style.display=form.style.display==='none'?'block':'none';
-  // Populate dropdowns
-  const mgrSel=document.getElementById('new-team-manager');
-  const critSel=document.getElementById('new-team-criteria');
-  if(mgrSel){
-    const mgrs=users.filter(u=>u.role==='gestor');
-    mgrSel.innerHTML='<option value="">Selecione...</option>'+mgrs.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
-  }
-  if(critSel){
-    const all=getAllCriteria();
-    critSel.innerHTML=Object.values(all).map(cr=>`<option value="${cr.id}">${cr.id==='global'?'🌐 ':''} ${cr.name}</option>`).join('');
-  }
+  const mgrSel=document.getElementById('new-team-manager'),critSel=document.getElementById('new-team-criteria');
+  if(mgrSel){const mgrs=users.filter(u=>u.role==='gestor');mgrSel.innerHTML='<option value="">Selecione...</option>'+mgrs.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');}
+  if(critSel){const all=getAllCriteria();critSel.innerHTML=Object.values(all).map(cr=>`<option value="${cr.id}">${cr.id==='global'?'🌐 ':''} ${cr.name}</option>`).join('');}
 }
-
 function cfgAddTeam(){
   const name=document.getElementById('new-team-name')?.value.trim();
   const managerId=document.getElementById('new-team-manager')?.value;
@@ -1581,9 +1393,7 @@ function cfgAddTeam(){
   if(!name){if(errEl)errEl.textContent='Informe o nome da equipe.';return;}
   if(teams.find(t=>t.name.toLowerCase()===name.toLowerCase())){if(errEl)errEl.textContent='Já existe uma equipe com este nome.';return;}
   const tid='t'+Date.now();
-  const newTeam={id:tid,name,managerId:managerId||null,criteriaId};
-  teams.push(newTeam);
-  // Assign manager's teamId
+  teams.push({id:tid,name,managerId:managerId||null,criteriaId});
   if(managerId){const mgr=users.find(u=>u.id===managerId);if(mgr)mgr.teamId=tid;}
   saveState();
   if(document.getElementById('new-team-name'))document.getElementById('new-team-name').value='';
@@ -1591,72 +1401,39 @@ function cfgAddTeam(){
   renderAdminSettings();buildHeader();
   showInviteToast(`Equipe <strong>${name}</strong> criada com sucesso!`);
 }
-
 function cfgRemTeam(tid){
-  const t=teams.find(x=>x.id===tid);
-  if(!t)return;
+  const t=teams.find(x=>x.id===tid);if(!t)return;
   const hasOps=users.some(u=>u.teamId===tid&&u.role==='operador');
-  const msg=hasOps
-    ? `Excluir a equipe "${t.name}"?\n\n⚠️ Há operadores vinculados a esta equipe. Eles ficarão sem equipe, mas seus registros serão mantidos.`
-    : `Excluir a equipe "${t.name}"?`;
+  const msg=hasOps?`Excluir a equipe "${t.name}"?\n\n⚠️ Há operadores vinculados.`:`Excluir a equipe "${t.name}"?`;
   if(!confirm(msg))return;
   teams=teams.filter(x=>x.id!==tid);
   users.forEach(u=>{if(u.teamId===tid)u.teamId=null;});
-  saveState();
-  renderAdminSettings();buildHeader();
+  saveState();renderAdminSettings();buildHeader();
   showInviteToast(`Equipe <strong>${t.name}</strong> excluída.`);
 }
+function cfgSetTeamCriteria(teamId,criteriaId){const t=teams.find(x=>x.id===teamId);if(t){t.criteriaId=criteriaId;saveState();}}
 
-function cfgSetTeamCriteria(teamId,criteriaId){
-  const t=teams.find(x=>x.id===teamId);
-  if(t){t.criteriaId=criteriaId;saveState();}
-}
+function cfgRemUser(id){if(!confirm('Remover usuário? Registros históricos mantidos.'))return;users=users.filter(u=>u.id!==id);saveState();renderAdminSettings();}
 
-// ══════════════════════════════════════════════════════════
-// CORREÇÃO 3: CADASTRO — criar login Supabase com senha provisória
-// ══════════════════════════════════════════════════════════
-function cfgRemUser(id){
-  if(!confirm('Remover usuário? Registros históricos mantidos.'))return;
-  users=users.filter(u=>u.id!==id);saveState();renderAdminSettings();
-}
-
-async function cfgCreateSupabaseUser(email,name,role){
-  // Gera senha provisória legível
-  const words=['Verde','Solar','Luz','Vento','Terra','Agua','Fogo','Nuvem'];
-  const w=words[Math.floor(Math.random()*words.length)];
-  const tempPass=w+Math.floor(100+Math.random()*900)+'!';
-  return{success:true,tempPass};
-}
-
-// Modal de definição de senha ao cadastrar
 let _pendingNewUser=null;
 function cfgOpenSetPassword(user){
   _pendingNewUser=user;
-  // Cria modal inline
-  const existing=document.getElementById('set-pw-modal');
-  if(existing)existing.remove();
-  const div=document.createElement('div');
-  div.id='set-pw-modal';
-  div.className='mb';
-  div.innerHTML=`<div class="mo" style="max-width:400px"><div class="mo-hd"><h3>Definir Senha — ${user.name}</h3><button class="mo-cl" onclick="cfgCancelSetPassword()">✕</button></div><div class="mo-body"><p style="font-size:13px;color:var(--text2);margin-bottom:1rem">Defina a senha inicial de acesso. O usuário poderá alterar depois.</p><div class="field"><label>E-mail de acesso</label><input type="email" value="${user.email}" readonly style="background:var(--bg2);color:var(--text2)"></div><div class="field"><label>Senha inicial *</label><input type="password" id="set-pw-input" placeholder="Mínimo 4 caracteres" onkeydown="if(event.key==='Enter')cfgConfirmSetPassword()"></div><div id="set-pw-err" style="font-size:11px;color:var(--red);margin-top:-6px;margin-bottom:8px;"></div></div><div class="mo-ft"><button class="btn btn-sec" onclick="cfgCancelSetPassword()">Cancelar</button><button class="btn btn-dark" onclick="cfgConfirmSetPassword()">Salvar e Cadastrar</button></div></div>`;
+  const existing=document.getElementById('set-pw-modal');if(existing)existing.remove();
+  const div=document.createElement('div');div.id='set-pw-modal';div.className='mb';
+  div.innerHTML=`<div class="mo" style="max-width:400px"><div class="mo-hd"><h3>Definir Senha — ${user.name}</h3><button class="mo-cl" onclick="cfgCancelSetPassword()">✕</button></div><div class="mo-body"><p style="font-size:13px;color:var(--text2);margin-bottom:1rem">Defina a senha inicial de acesso.</p><div class="field"><label>E-mail de acesso</label><input type="email" value="${user.email}" readonly style="background:var(--bg2);color:var(--text2)"></div><div class="field"><label>Senha inicial *</label><input type="password" id="set-pw-input" placeholder="Mínimo 4 caracteres" onkeydown="if(event.key==='Enter')cfgConfirmSetPassword()"></div><div id="set-pw-err" style="font-size:11px;color:var(--red);margin-top:-6px;margin-bottom:8px;"></div></div><div class="mo-ft"><button class="btn btn-sec" onclick="cfgCancelSetPassword()">Cancelar</button><button class="btn btn-dark" onclick="cfgConfirmSetPassword()">Salvar e Cadastrar</button></div></div>`;
   document.body.appendChild(div);
   setTimeout(()=>document.getElementById('set-pw-input')?.focus(),100);
 }
-function cfgCancelSetPassword(){
-  document.getElementById('set-pw-modal')?.remove();
-  _pendingNewUser=null;
-}
+function cfgCancelSetPassword(){document.getElementById('set-pw-modal')?.remove();_pendingNewUser=null;}
 function cfgConfirmSetPassword(){
   const pw=document.getElementById('set-pw-input')?.value||'';
   const errEl=document.getElementById('set-pw-err');
   if(pw.length<4){errEl.textContent='Senha deve ter pelo menos 4 caracteres.';return;}
   const u=_pendingNewUser;if(!u)return;
-  u.password=pw;u.passwordSet=true;
-  users.push(u);saveState();
-  document.getElementById('set-pw-modal')?.remove();
-  _pendingNewUser=null;
+  u.password=pw;u.passwordSet=true;users.push(u);saveState();
+  document.getElementById('set-pw-modal')?.remove();_pendingNewUser=null;
   renderAdminSettings();
-  showInviteToast(`✅ <strong>${u.name}</strong> cadastrado com sucesso!<br><span style="font-size:11px;color:rgba(255,255,255,.5)">E-mail: ${u.email}</span>`);
+  showInviteToast(`✅ <strong>${u.name}</strong> cadastrado com sucesso!`);
 }
 
 async function cfgAddAgent(){
@@ -1666,10 +1443,8 @@ async function cfgAddAgent(){
   if(!email||!email.includes('@')){showCfgFieldError('new-agent-email','E-mail válido é obrigatório.');return;}
   if(users.find(u=>u.email&&u.email.toLowerCase()===email.toLowerCase())){showCfgFieldError('new-agent-email','E-mail já cadastrado.');return;}
   document.getElementById('new-agent').value='';document.getElementById('new-agent-email').value='';
-  const id='op'+Date.now();
-  cfgOpenSetPassword({id,name:n,role:'operador',teamId:null,password:'',email,passwordSet:false});
+  cfgOpenSetPassword({id:'op'+Date.now(),name:n,role:'operador',teamId:null,password:'',email,passwordSet:false});
 }
-
 async function cfgAddManager(){
   const n=document.getElementById('new-manager').value.trim();
   const email=document.getElementById('new-manager-email').value.trim();
@@ -1678,11 +1453,9 @@ async function cfgAddManager(){
   if(users.find(u=>u.email&&u.email.toLowerCase()===email.toLowerCase())){showCfgFieldError('new-manager-email','E-mail já cadastrado.');return;}
   document.getElementById('new-manager').value='';document.getElementById('new-manager-email').value='';
   const mid='m'+Date.now(),tid='t'+Date.now();
-  teams.push({id:tid,name:n+"'s Equipe",managerId:mid,criteriaId:'global'});
-  saveState();
+  teams.push({id:tid,name:n+"'s Equipe",managerId:mid,criteriaId:'global'});saveState();
   cfgOpenSetPassword({id:mid,name:n,role:'gestor',teamId:tid,password:'',email,passwordSet:false});
 }
-
 async function cfgAddAdmin(){
   const n=document.getElementById('new-admin').value.trim();
   const email=document.getElementById('new-admin-email').value.trim();
@@ -1690,12 +1463,10 @@ async function cfgAddAdmin(){
   if(!email||!email.includes('@')){showCfgFieldError('new-admin-email','E-mail válido é obrigatório.');return;}
   if(users.find(u=>u.email&&u.email.toLowerCase()===email.toLowerCase())){showCfgFieldError('new-admin-email','E-mail já cadastrado.');return;}
   document.getElementById('new-admin').value='';document.getElementById('new-admin-email').value='';
-  const id='adm'+Date.now();
-  cfgOpenSetPassword({id,name:n,role:'admin',teamId:null,password:'',email,passwordSet:false});
+  cfgOpenSetPassword({id:'adm'+Date.now(),name:n,role:'admin',teamId:null,password:'',email,passwordSet:false});
 }
 
 async function resendInvite(userId){
-  // No modo simples: abre modal para redefinir senha
   const u=users.find(x=>x.id===userId);if(!u)return;
   const existing=document.getElementById('set-pw-modal');if(existing)existing.remove();
   const div=document.createElement('div');div.id='set-pw-modal';div.className='mb';
@@ -1714,7 +1485,6 @@ function renderCfgAssign(){
     return`<div class="mgr-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div><span style="font-size:13px;font-weight:700">${m.name}</span> <span style="font-size:11px;color:var(--text2)">— ${tm?.name||'sem equipe'}</span></div><span style="font-size:11px;color:var(--text2)">${ops2.length} op.</span></div><div class="tag-row">${ops2.map(u=>`<span class="tag">${u.name}<button class="tag-del" onclick="cfgUnassign('${u.id}')">✕</button></span>`).join('')}</div>${unassigned.length?`<div style="display:flex;gap:6px;margin-top:6px"><select id="asg-${m.id}" style="flex:1;font-size:12px;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none"><option value="">Adicionar operador...</option>${unassigned.map(u=>`<option value="${u.id}">${u.name}</option>`).join('')}</select><button onclick="cfgAssign('${m.id}','${tm?.id||''}')" style="background:var(--green);color:#fff;border:none;border-radius:var(--r);padding:5px 12px;font-size:12px;cursor:pointer;font-weight:700">+ Vincular</button></div>`:'<div style="font-size:11px;color:var(--text3);margin-top:4px">Todos vinculados.</div>'}</div>`;
   }).join('');
 }
-
 function cfgAssign(managerId,teamId){
   const sel=document.getElementById('asg-'+managerId);if(!sel||!sel.value)return;
   const u=users.find(x=>x.id===sel.value);if(!u)return;
@@ -1735,7 +1505,6 @@ function cfgRemMonth(m){
   saveState();buildMonthPicker();renderAdminSettings();
 }
 
-// Scoring
 function renderCfgScoringItems(){
   const sc=getScoring();
   document.getElementById('cfg-scoring-items').innerHTML=sc.items.map(it=>`<div class="sc-row sc-item-row" data-id="${it.id}"><span style="color:var(--text3);font-size:12px;flex-shrink:0">⠿</span><input type="text" class="sc-item-label" value="${it.label.replace(/"/g,'&quot;')}" onchange="cfgSaveScoring()"><input type="number" class="sc-item-penalty" min="0" max="200" value="${it.penalty}" onchange="cfgSaveScoring()"><span style="font-size:11px;color:var(--text2)">pts</span><button onclick="cfgRemQItem('${it.id}')" class="del-btn">✕</button></div>`).join('');
@@ -1743,10 +1512,7 @@ function renderCfgScoringItems(){
 }
 function cfgSaveScoring(){
   const rows=document.querySelectorAll('.sc-item-row'),items=[];
-  rows.forEach(r=>{
-    const l=r.querySelector('.sc-item-label')?.value.trim()||'',p=parseInt(r.querySelector('.sc-item-penalty')?.value)||0;
-    if(l)items.push({id:r.dataset.id,label:l,penalty:p});
-  });
+  rows.forEach(r=>{const l=r.querySelector('.sc-item-label')?.value.trim()||'',p=parseInt(r.querySelector('.sc-item-penalty')?.value)||0;if(l)items.push({id:r.dataset.id,label:l,penalty:p});});
   const maxScore=parseInt(document.getElementById('cfg-max-score')?.value)||60;
   const sc=getScoring();ss(K.SCORING,{...sc,maxScore,items});
   const el=document.getElementById('cfg-q-total');if(el)el.textContent=items.reduce((s,i)=>s+i.penalty,0);
@@ -1762,112 +1528,38 @@ function cfgAddQItem(){
 function cfgRemQItem(id){if(!confirm('Remover item?'))return;const sc=getScoring();sc.items=sc.items.filter(i=>i.id!==id);ss(K.SCORING,sc);renderCfgScoringItems();buildModalChecks();}
 function cfgResetQItems(){if(!confirm('Restaurar itens padrão?'))return;const sc=getScoring();ss(K.SCORING,{...sc,items:SCORING_DEF.items});renderCfgScoringItems();buildModalChecks();}
 
-// ══════════════════════════════════════════════════════════
-// CORREÇÃO 2: CRITÉRIOS POR EQUIPE — salvar funcionando (inclui criticalItems)
-// ══════════════════════════════════════════════════════════
 function cfgPopulateCriteriaTeamSel(){
   const sel=document.getElementById('cfg-criteria-team-sel');if(!sel)return;
   const all=getAllCriteria();
   sel.innerHTML=Object.values(all).map(cr=>`<option value="${cr.id}">${cr.id==='global'?'🌐 ':''} ${cr.name}</option>`).join('');
 }
-
 function cfgLoadTeamCriteria(){
   const cid=document.getElementById('cfg-criteria-team-sel')?.value||'global';
   const cr=getCriteria(cid);
   const el=document.getElementById('cfg-criteria-editor');if(!el)return;
-  el.innerHTML=`
-    <div class="g2" style="align-items:start;margin-bottom:12px">
-      <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">Nome do Modelo</div>
-        <div style="display:flex;gap:6px">
-          <input id="cr-name" value="${cr.name}" style="flex:1;font-size:12px;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;">
-          <input id="cr-maxscore" type="number" min="1" max="200" value="${cr.maxScore}" style="width:70px;font-size:13px;font-weight:700;padding:7px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:center;outline:none;">
-          <span style="font-size:11px;color:var(--text2);align-self:center">pts máx.</span>
-        </div>
-        <div style="display:flex;gap:6px;margin-top:6px;align-items:center">
-          <label style="font-size:11px;color:var(--text2)">Monitorias/op/mês:</label>
-          <input id="cr-monperop" type="number" min="1" max="50" value="${cr.monPerOp||8}" style="width:60px;font-size:13px;font-weight:700;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:center;outline:none;">
-        </div>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">Equipes usando este modelo</div>
-        <div style="display:flex;flex-wrap:wrap;gap:5px">
-          ${teams.filter(t=>(t.criteriaId||'global')===cid).map(t=>`<span class="tag">${t.name}</span>`).join('')||'<span style="font-size:11px;color:var(--text3)">Nenhuma equipe</span>'}
-        </div>
-        <div style="margin-top:8px;display:flex;gap:6px">
-          <select id="cr-assign-team" style="flex:1;font-size:12px;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;">
-            <option value="">Atribuir a uma equipe...</option>
-            ${teams.map(t=>`<option value="${t.id}">${t.name} (${getCriteria(t.criteriaId||'global').name})</option>`).join('')}
-          </select>
-          <button onclick="cfgAssignCriteriaToTeam('${cid}')" class="btn btn-sec btn-sm">Atribuir</button>
-        </div>
-      </div>
-    </div>
-    <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Itens de Qualidade (desconto parcial)</div>
-    <div id="cr-items-list">
-      ${cr.items.map(it=>`<div class="sc-row cr-item-row" data-id="${it.id}" data-cid="${cid}"><span style="color:var(--text3);font-size:12px;flex-shrink:0">⠿</span><input type="text" class="cr-item-label" value="${it.label.replace(/"/g,'&quot;')}" style="flex:1;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;min-width:0"><input type="number" class="cr-item-penalty" min="0" max="200" value="${it.penalty}" style="width:54px;font-size:13px;font-weight:700;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);text-align:center;outline:none;flex-shrink:0"><span style="font-size:11px;color:var(--text2)">pts</span><button onclick="cfgRemCriteriaItem('${cid}','${it.id}')" class="del-btn">✕</button></div>`).join('')}
-    </div>
-    <div style="display:flex;gap:6px;margin-top:8px">
-      <input id="cr-new-label" placeholder="Novo critério de qualidade..." style="flex:1;font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;">
-      <input id="cr-new-pts" type="number" min="0" placeholder="pts" style="width:54px;font-size:12px;padding:6px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:center;outline:none;">
-      <button onclick="cfgAddCriteriaItem('${cid}')" style="background:var(--green);color:#fff;border:none;border-radius:var(--r);padding:6px 12px;font-size:12px;cursor:pointer;font-weight:700">+ Item</button>
-    </div>
-
-    <div style="font-size:11px;font-weight:700;color:var(--text2);margin:14px 0 6px;text-transform:uppercase">Itens Críticos (zeram a monitoria)</div>
-    <div id="cr-crit-list">
-      ${cr.criticalItems.map(it=>`<div class="sc-row cr-crit-row" data-id="${it.id}" data-cid="${cid}" style="border-color:#ffccca;"><span style="color:var(--red);font-size:12px;flex-shrink:0">⛔</span><input type="text" class="cr-crit-label" value="${it.label.replace(/"/g,'&quot;')}" style="flex:1;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;min-width:0"><span style="font-size:11px;font-weight:700;color:var(--red)">Zera</span><button onclick="cfgRemCritItem('${cid}','${it.id}')" class="del-btn">✕</button></div>`).join('')}
-    </div>
-    <div style="display:flex;gap:6px;margin-top:8px">
-      <input id="cr-new-crit-label" placeholder="Novo item crítico..." style="flex:1;font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;">
-      <button onclick="cfgAddCritItem('${cid}')" style="background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:6px 12px;font-size:12px;cursor:pointer;font-weight:700">+ Crítico</button>
-    </div>
-
-    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
-      <button onclick="cfgSaveCurrentCriteria('${cid}')" class="btn btn-dark btn-sm">💾 Salvar Modelo</button>
-      ${cid!=='global'?`<button onclick="cfgDeleteCriteria('${cid}')" class="btn btn-danger btn-sm">🗑 Excluir Modelo</button>`:''}
-    </div>
-    <div id="cr-save-msg" style="font-size:12px;color:var(--green);margin-top:8px;display:none">✓ Modelo salvo com sucesso!</div>`;
+  el.innerHTML=`<div class="g2" style="align-items:start;margin-bottom:12px"><div><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">Nome do Modelo</div><div style="display:flex;gap:6px"><input id="cr-name" value="${cr.name}" style="flex:1;font-size:12px;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;"><input id="cr-maxscore" type="number" min="1" max="200" value="${cr.maxScore}" style="width:70px;font-size:13px;font-weight:700;padding:7px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:center;outline:none;"><span style="font-size:11px;color:var(--text2);align-self:center">pts máx.</span></div><div style="display:flex;gap:6px;margin-top:6px;align-items:center"><label style="font-size:11px;color:var(--text2)">Monitorias/op/mês:</label><input id="cr-monperop" type="number" min="1" max="50" value="${cr.monPerOp||8}" style="width:60px;font-size:13px;font-weight:700;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:center;outline:none;"></div></div><div><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">Equipes usando este modelo</div><div style="display:flex;flex-wrap:wrap;gap:5px">${teams.filter(t=>(t.criteriaId||'global')===cid).map(t=>`<span class="tag">${t.name}</span>`).join('')||'<span style="font-size:11px;color:var(--text3)">Nenhuma equipe</span>'}</div><div style="margin-top:8px;display:flex;gap:6px"><select id="cr-assign-team" style="flex:1;font-size:12px;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;"><option value="">Atribuir a uma equipe...</option>${teams.map(t=>`<option value="${t.id}">${t.name} (${getCriteria(t.criteriaId||'global').name})</option>`).join('')}</select><button onclick="cfgAssignCriteriaToTeam('${cid}')" class="btn btn-sec btn-sm">Atribuir</button></div></div></div><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Itens de Qualidade (desconto parcial)</div><div id="cr-items-list">${cr.items.map(it=>`<div class="sc-row cr-item-row" data-id="${it.id}" data-cid="${cid}"><span style="color:var(--text3);font-size:12px;flex-shrink:0">⠿</span><input type="text" class="cr-item-label" value="${it.label.replace(/"/g,'&quot;')}" style="flex:1;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;min-width:0"><input type="number" class="cr-item-penalty" min="0" max="200" value="${it.penalty}" style="width:54px;font-size:13px;font-weight:700;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);text-align:center;outline:none;flex-shrink:0"><span style="font-size:11px;color:var(--text2)">pts</span><button onclick="cfgRemCriteriaItem('${cid}','${it.id}')" class="del-btn">✕</button></div>`).join('')}</div><div style="display:flex;gap:6px;margin-top:8px"><input id="cr-new-label" placeholder="Novo critério de qualidade..." style="flex:1;font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;"><input id="cr-new-pts" type="number" min="0" placeholder="pts" style="width:54px;font-size:12px;padding:6px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:center;outline:none;"><button onclick="cfgAddCriteriaItem('${cid}')" style="background:var(--green);color:#fff;border:none;border-radius:var(--r);padding:6px 12px;font-size:12px;cursor:pointer;font-weight:700">+ Item</button></div><div style="font-size:11px;font-weight:700;color:var(--text2);margin:14px 0 6px;text-transform:uppercase">Itens Críticos (zeram a monitoria)</div><div id="cr-crit-list">${cr.criticalItems.map(it=>`<div class="sc-row cr-crit-row" data-id="${it.id}" data-cid="${cid}" style="border-color:#ffccca;"><span style="color:var(--red);font-size:12px;flex-shrink:0">⛔</span><input type="text" class="cr-crit-label" value="${it.label.replace(/"/g,'&quot;')}" style="flex:1;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;min-width:0"><span style="font-size:11px;font-weight:700;color:var(--red)">Zera</span><button onclick="cfgRemCritItem('${cid}','${it.id}')" class="del-btn">✕</button></div>`).join('')}</div><div style="display:flex;gap:6px;margin-top:8px"><input id="cr-new-crit-label" placeholder="Novo item crítico..." style="flex:1;font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;"><button onclick="cfgAddCritItem('${cid}')" style="background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:6px 12px;font-size:12px;cursor:pointer;font-weight:700">+ Crítico</button></div><div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button onclick="cfgSaveCurrentCriteria('${cid}')" class="btn btn-dark btn-sm">💾 Salvar Modelo</button>${cid!=='global'?`<button onclick="cfgDeleteCriteria('${cid}')" class="btn btn-danger btn-sm">🗑 Excluir Modelo</button>`:''}</div><div id="cr-save-msg" style="font-size:12px;color:var(--green);margin-top:8px;display:none">✓ Modelo salvo com sucesso!</div>`;
 }
 
-// CORREÇÃO: cfgSaveCurrentCriteria agora salva também criticalItems
 function cfgSaveCurrentCriteria(cid){
   const all=getAllCriteria();
   const cr=all[cid]||JSON.parse(JSON.stringify(CRITERIA_DEF));cr.id=cid;
   cr.name=document.getElementById('cr-name')?.value||cr.name;
   cr.maxScore=parseInt(document.getElementById('cr-maxscore')?.value)||60;
   cr.monPerOp=parseInt(document.getElementById('cr-monperop')?.value)||8;
-  // Salva itens de qualidade
-  const itemRows=document.querySelectorAll('.cr-item-row');
-  const items=[];
-  itemRows.forEach(r=>{
-    const l=r.querySelector('.cr-item-label')?.value.trim()||'';
-    const p=parseInt(r.querySelector('.cr-item-penalty')?.value)||0;
-    if(l)items.push({id:r.dataset.id,label:l,penalty:p});
-  });
+  const itemRows=document.querySelectorAll('.cr-item-row'),items=[];
+  itemRows.forEach(r=>{const l=r.querySelector('.cr-item-label')?.value.trim()||'',p=parseInt(r.querySelector('.cr-item-penalty')?.value)||0;if(l)items.push({id:r.dataset.id,label:l,penalty:p});});
   cr.items=items;
-  // Salva itens críticos
-  const critRows=document.querySelectorAll('.cr-crit-row');
-  const critItems=[];
-  critRows.forEach(r=>{
-    const l=r.querySelector('.cr-crit-label')?.value.trim()||'';
-    if(l)critItems.push({id:r.dataset.id,label:l});
-  });
-  cr.criticalItems=critItems;
-  all[cid]=cr;
-  saveCriteria(all);
-  // Atualiza seletor de modelos nas equipes
-  renderCfgTeams();
-  const mEl=document.getElementById('cr-save-msg');
-  if(mEl){mEl.style.display='block';setTimeout(()=>mEl.style.display='none',2500);}
+  const critRows=document.querySelectorAll('.cr-crit-row'),critItems=[];
+  critRows.forEach(r=>{const l=r.querySelector('.cr-crit-label')?.value.trim()||'';if(l)critItems.push({id:r.dataset.id,label:l});});
+  cr.criticalItems=critItems;all[cid]=cr;saveCriteria(all);renderCfgTeams();
+  const mEl=document.getElementById('cr-save-msg');if(mEl){mEl.style.display='block';setTimeout(()=>mEl.style.display='none',2500);}
   buildModalChecks();
 }
-
 function cfgAddCriteriaItem(cid){
   const l=document.getElementById('cr-new-label')?.value.trim(),p=parseInt(document.getElementById('cr-new-pts')?.value)||0;
   if(!l)return;
   const all=getAllCriteria(),cr=all[cid]||JSON.parse(JSON.stringify(CRITERIA_DEF));
-  cr.id=cid;cr.items.push({id:'ci'+Date.now(),label:l,penalty:p});
-  all[cid]=cr;saveCriteria(all);cfgLoadTeamCriteria();
+  cr.id=cid;cr.items.push({id:'ci'+Date.now(),label:l,penalty:p});all[cid]=cr;saveCriteria(all);cfgLoadTeamCriteria();
 }
 function cfgRemCriteriaItem(cid,itemId){
   if(!confirm('Remover este critério?'))return;
@@ -1878,8 +1570,7 @@ function cfgAddCritItem(cid){
   const l=document.getElementById('cr-new-crit-label')?.value.trim();if(!l)return;
   const all=getAllCriteria(),cr=all[cid]||JSON.parse(JSON.stringify(CRITERIA_DEF));
   cr.id=cid;if(!cr.criticalItems)cr.criticalItems=[];
-  cr.criticalItems.push({id:'cc'+Date.now(),label:l});
-  all[cid]=cr;saveCriteria(all);cfgLoadTeamCriteria();
+  cr.criticalItems.push({id:'cc'+Date.now(),label:l});all[cid]=cr;saveCriteria(all);cfgLoadTeamCriteria();
 }
 function cfgRemCritItem(cid,itemId){
   if(!confirm('Remover item crítico?'))return;
@@ -1904,7 +1595,6 @@ function cfgAssignCriteriaToTeam(cid){
   const team=teams.find(t=>t.id===sel.value);
   if(team){team.criteriaId=cid;saveState();cfgLoadTeamCriteria();renderCfgTeams();}
 }
-
 function cfgChangePin(){
   const v=document.getElementById('cfg-new-pin')?.value.trim();
   if(!/^\d{4}$/.test(v)){alert('PIN deve ter 4 dígitos.');return;}
@@ -1912,7 +1602,6 @@ function cfgChangePin(){
 }
 function lockCfg(){cfgUnlocked=false;document.getElementById('cfg-locked').style.display='block';document.getElementById('cfg-unlocked').style.display='none';}
 
-// PIN
 let pinBuf='';
 function showPin(){pinBuf='';updPinDots();document.getElementById('pin-err').textContent='';document.getElementById('pin-modal').style.display='flex';}
 function hidePin(){document.getElementById('pin-modal').style.display='none';}
@@ -1920,9 +1609,6 @@ function pk(d){if(pinBuf.length>=4)return;pinBuf+=d;updPinDots();if(pinBuf.lengt
 function pkBk(){pinBuf=pinBuf.slice(0,-1);updPinDots();document.getElementById('pin-err').textContent='';}
 function updPinDots(){for(let i=0;i<4;i++)document.getElementById('pd'+i).classList.toggle('f',i<pinBuf.length);}
 
-// ══════════════════════════════════════════════════════════
-// MODAL NOVA MONITORIA
-// ══════════════════════════════════════════════════════════
 function getModalCriteria(){
   const agId=document.getElementById('f-agent')?.value;
   if(agId){const u2=users.find(x=>x.id===agId);if(u2?.teamId)return getTeamCriteria(u2.teamId);}
@@ -1968,8 +1654,7 @@ function updScore(){
   document.getElementById('crit-warn').style.display=hasCrit?'block':'none';
 }
 function openModal(){
-  document.getElementById('f-proto').value='';
-  document.getElementById('f-obs').value='';
+  document.getElementById('f-proto').value='';document.getElementById('f-obs').value='';
   document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
   buildModalDropdowns();buildModalChecks();updScore();
   document.getElementById('modal').style.display='flex';
@@ -1997,9 +1682,6 @@ function addEntry(){
   saveState();closeModal();refreshView();
 }
 
-// ══════════════════════════════════════════════════════════
-// AUTH FLOW
-// ══════════════════════════════════════════════════════════
 function showScreen(name){
   document.getElementById('login-screen').style.display='none';
   document.querySelectorAll('.auth-screen').forEach(s=>s.classList.remove('active'));
@@ -2008,7 +1690,6 @@ function showScreen(name){
   else if(name==='criar-senha'){document.getElementById('screen-criar-senha').classList.add('active');document.getElementById('new-pass').value='';document.getElementById('confirm-pass').value='';showMsg('create-msg','','');onPassInput();}
 }
 function showMsg(elId,text,type){const el=document.getElementById(elId);if(!el)return;el.textContent=text;el.className='auth-msg'+(type?' '+type:'');if(!type)el.style.display='none';}
-
 function onPassInput(){
   const val=document.getElementById('new-pass')?.value||'';
   const bar=document.getElementById('pass-strength-bar'),hint=document.getElementById('pass-strength-hint');if(!bar)return;
@@ -2016,7 +1697,6 @@ function onPassInput(){
   const lvs=[{pct:'0%',c:'transparent',t:''},{pct:'25%',c:'#FF5252',t:'Muito fraca'},{pct:'50%',c:'#FFB300',t:'Fraca'},{pct:'70%',c:'#FF9500',t:'Moderada'},{pct:'88%',c:'#00cc44',t:'Forte'},{pct:'100%',c:'#00E676',t:'Muito forte ✓'}];
   const lv=lvs[Math.min(s,5)];bar.style.width=val.length?lv.pct:'0%';bar.style.background=lv.c;if(hint){hint.textContent=val.length?lv.t:'';hint.style.color=lv.c;}
 }
-
 async function requestPasswordReset(){
   const emailEl=document.getElementById('reset-email'),errEl=document.getElementById('reset-email-err'),btn=document.getElementById('reset-btn');
   const email=emailEl.value.trim();errEl.textContent='';showMsg('reset-msg','','');
@@ -2027,7 +1707,6 @@ async function requestPasswordReset(){
   showMsg('reset-msg','Se o e-mail estiver cadastrado, você receberá um link para redefinir sua senha.','success');
   btn.disabled=false;btn.textContent='Enviar link de recuperação';emailEl.value='';
 }
-
 async function createPassword(){
   const passEl=document.getElementById('new-pass'),confEl=document.getElementById('confirm-pass');
   const passErrEl=document.getElementById('new-pass-err'),confErrEl=document.getElementById('confirm-pass-err'),btn=document.getElementById('create-btn');
@@ -2045,9 +1724,6 @@ async function createPassword(){
   setTimeout(()=>{_supabase.auth.signOut();showScreen('login');},2500);
 }
 
-// ══════════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════════
 function showInviteToast(html){
   const t=document.getElementById('invite-toast'),txt=document.getElementById('invite-toast-text');
   if(!t||!txt)return;txt.innerHTML=html;t.classList.add('show');
@@ -2057,11 +1733,7 @@ function showCfgFieldError(inputId,msg){
   const el=document.getElementById(inputId);if(!el)return;
   el.style.borderColor='var(--red)';el.focus();
   let errEl=el.nextElementSibling;
-  if(!errEl||!errEl.classList.contains('cfg-field-err')){
-    errEl=document.createElement('div');errEl.className='cfg-field-err';
-    errEl.style.cssText='font-size:11px;color:#ff6b6b;margin-top:3px;';
-    el.parentNode.insertBefore(errEl,el.nextSibling);
-  }
+  if(!errEl||!errEl.classList.contains('cfg-field-err')){errEl=document.createElement('div');errEl.className='cfg-field-err';errEl.style.cssText='font-size:11px;color:#ff6b6b;margin-top:3px;';el.parentNode.insertBefore(errEl,el.nextSibling);}
   errEl.textContent=msg;
   el.addEventListener('input',()=>{el.style.borderColor='';errEl.textContent='';},{once:true});
 }
@@ -2072,7 +1744,7 @@ function exportPDF(containerId,personName){
   clone.querySelectorAll('canvas').forEach(cv=>{if(ci[cv.id]){const img=document.createElement('img');img.src=ci[cv.id];img.style.cssText='width:100%;height:auto;border-radius:6px;';cv.parentNode.replaceChild(img,cv);}});
   clone.querySelectorAll('.no-print,.back-btn,.btn-green').forEach(e=>e.remove());
   const now=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
-  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório — ${personName||'Operador'}</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#1c1c1e;padding:2rem;font-size:13px;}.pdf-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid #00cc44;}h1{font-size:20px;font-weight:800;}.sub{font-size:12px;color:#6e6e73;margin-bottom:1.5rem;}.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem;}.kpi{border:1px solid #e0e0e5;border-radius:10px;padding:.9rem 1rem;}.kpi-label{font-size:9px;color:#6e6e73;font-weight:700;text-transform:uppercase;margin-bottom:4px;}.kpi-val{font-size:24px;font-weight:800;}.c-green{color:#34C759;}.c-red{color:#FF3B30;}.c-amber{color:#FF9500;}.card{border:1px solid #e0e0e5;border-radius:10px;padding:1rem;margin-bottom:1rem;}.card-title{font-size:9px;font-weight:700;color:#6e6e73;text-transform:uppercase;margin-bottom:.75rem;}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;}table{width:100%;border-collapse:collapse;font-size:11px;}th{font-size:9px;font-weight:700;color:#6e6e73;text-align:left;padding:6px 8px;border-bottom:1px solid #e0e0e5;text-transform:uppercase;}td{padding:7px 8px;border-bottom:1px solid #f0f0f0;}.badge{font-size:9px;padding:2px 7px;border-radius:20px;font-weight:700;display:inline-block;}.bg-green{background:#d1f2d9;color:#1a6330;}.bg-amber{background:#fef3d0;color:#7a4800;}.bg-red{background:#fee5e5;color:#7a1515;}.bg-dark{background:#2c2c2e;color:#fff;}.op-hero{background:linear-gradient(135deg,#1c1c1e,#2c2c2e);border-radius:10px;padding:1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:1rem;}.month-cmp{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:1rem;}.mc{border:1px solid #e0e0e5;border-radius:8px;padding:.75rem;}.mc.curr{border-color:#34C759;background:#eaf9ee;}.pdf-footer{margin-top:2rem;padding-top:1rem;border-top:2px solid #00cc44;font-size:10px;color:#aeaeb2;text-align:center;}.no-print{display:none!important;}@page{margin:1.5cm;}</style></head><body><div class="pdf-header"><div><div style="font-size:10px;font-weight:700;color:#00993a;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">iGreen Performance · Monitoria de Qualidade</div><h1>Relatório de Performance</h1><div style="font-size:12px;color:#6e6e73;margin-top:3px">${personName||''} · ${currentMonth} · ${now}</div></div><div style="text-align:right;font-size:10px;color:#aeaeb2">Documento confidencial</div></div>${clone.innerHTML}<div class="pdf-footer">iGreen Performance · ${now}</div></body></html>`;
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório — ${personName||'Operador'}</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#1c1c1e;padding:2rem;font-size:13px;}.pdf-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid #00cc44;}h1{font-size:20px;font-weight:800;}.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem;}.kpi{border:1px solid #e0e0e5;border-radius:10px;padding:.9rem 1rem;}.kpi-label{font-size:9px;color:#6e6e73;font-weight:700;text-transform:uppercase;margin-bottom:4px;}.kpi-val{font-size:24px;font-weight:800;}.c-green{color:#34C759;}.c-red{color:#FF3B30;}.c-amber{color:#FF9500;}.card{border:1px solid #e0e0e5;border-radius:10px;padding:1rem;margin-bottom:1rem;}.card-title{font-size:9px;font-weight:700;color:#6e6e73;text-transform:uppercase;margin-bottom:.75rem;}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;}table{width:100%;border-collapse:collapse;font-size:11px;}th{font-size:9px;font-weight:700;color:#6e6e73;text-align:left;padding:6px 8px;border-bottom:1px solid #e0e0e5;text-transform:uppercase;}td{padding:7px 8px;border-bottom:1px solid #f0f0f0;}.badge{font-size:9px;padding:2px 7px;border-radius:20px;font-weight:700;display:inline-block;}.bg-green{background:#d1f2d9;color:#1a6330;}.bg-amber{background:#fef3d0;color:#7a4800;}.bg-red{background:#fee5e5;color:#7a1515;}.bg-dark{background:#2c2c2e;color:#fff;}.op-hero{background:linear-gradient(135deg,#1c1c1e,#2c2c2e);border-radius:10px;padding:1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:1rem;}.month-cmp{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:1rem;}.mc{border:1px solid #e0e0e5;border-radius:8px;padding:.75rem;}.mc.curr{border-color:#34C759;background:#eaf9ee;}.pdf-footer{margin-top:2rem;padding-top:1rem;border-top:2px solid #00cc44;font-size:10px;color:#aeaeb2;text-align:center;}.no-print{display:none!important;}@page{margin:1.5cm;}</style></head><body><div class="pdf-header"><div><div style="font-size:10px;font-weight:700;color:#00993a;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">iGreen Performance · Monitoria de Qualidade</div><h1>Relatório de Performance</h1><div style="font-size:12px;color:#6e6e73;margin-top:3px">${personName||''} · ${currentMonth} · ${now}</div></div><div style="text-align:right;font-size:10px;color:#aeaeb2">Documento confidencial</div></div>${clone.innerHTML}<div class="pdf-footer">iGreen Performance · ${now}</div></body></html>`;
   const win=window.open('','_blank','width=900,height=700');if(!win){alert('Popup bloqueado.');return;}
   win.document.write(html);win.document.close();win.focus();setTimeout(()=>win.print(),600);
 }
@@ -2084,18 +1756,6 @@ const SUPABASE_URL='https://eiiurwzccrliclnpuuii.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpaXVyd3pjY3JsaWNsbnB1dWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NDczNzEsImV4cCI6MjA4OTMyMzM3MX0.BzUg_f6CvNfie0tRXpjGov-tCUyfdTLODg1pUMhWCso';
 const _supabase=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-// ══════════════════════════════════════════════════════════
-// SUPABASE PERSISTÊNCIA
-// Tabelas necessárias no Supabase (execute no SQL Editor):
-//
-// create table if not exists ig_state (
-//   id text primary key,
-//   payload jsonb not null,
-//   updated_at timestamptz default now()
-// );
-// alter table ig_state enable row level security;
-// create policy "allow all" on ig_state for all using (true) with check (true);
-// ══════════════════════════════════════════════════════════
 let _syncTimeout=null;
 
 async function dbSave(){
@@ -2118,7 +1778,6 @@ async function dbLoad(){
   }catch(e){console.warn('[DB load error]',e);return false;}
 }
 
-// Salva com debounce (evita muitas chamadas seguidas)
 function saveState(){
   ss(K.STATE,{users,teams,months,records});
   clearTimeout(_syncTimeout);
@@ -2126,10 +1785,9 @@ function saveState(){
 }
 
 // ══════════════════════════════════════════════════════════
-// BOOT
+// BOOT — sempre busca do Supabase primeiro
 // ══════════════════════════════════════════════════════════
 loadState();
-// Check Supabase session
 _supabase.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY')showScreen('criar-senha');});
 (async()=>{
   const hash=window.location.hash;
@@ -2138,13 +1796,14 @@ _supabase.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY
   const loginFormWrap=document.getElementById('login-form-wrap');
   loginLoading.style.display='block';loginFormWrap.style.display='none';
   try{
+    await dbLoad();
     const{data:{session}}=await _supabase.auth.getSession();
     if(session){
       const email=session.user.email;
       const u=users.find(x=>x.email&&x.email.toLowerCase()===email.toLowerCase());
       if(u){login(u);return;}
     }
-  }catch(e){}
+  }catch(e){console.warn('[boot error]',e);}
   loginLoading.style.display='none';loginFormWrap.style.display='block';
 })();
 </script>
