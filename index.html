@@ -2128,25 +2128,42 @@ function saveState(){
 // ══════════════════════════════════════════════════════════
 // BOOT
 // ══════════════════════════════════════════════════════════
+// Carrega estado local como fallback
 loadState();
-// Check Supabase session
-_supabase.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY')showScreen('criar-senha');});
-(async()=>{
-  const hash=window.location.hash;
-  if(hash&&hash.includes('access_token')){showScreen('criar-senha');return;}
-  const loginLoading=document.getElementById('login-loading');
-  const loginFormWrap=document.getElementById('login-form-wrap');
-  loginLoading.style.display='block';loginFormWrap.style.display='none';
-  try{
-    const{data:{session}}=await _supabase.auth.getSession();
-    if(session){
-      const email=session.user.email;
-      const u=users.find(x=>x.email&&x.email.toLowerCase()===email.toLowerCase());
-      if(u){login(u);return;}
+
+// Sobrescreve com dados do Supabase sempre que abrir
+(async () => {
+  const hash = window.location.hash;
+  if (hash && hash.includes('access_token')) {
+    showScreen('criar-senha');
+    return;
+  }
+
+  const loginLoading  = document.getElementById('login-loading');
+  const loginFormWrap = document.getElementById('login-form-wrap');
+  loginLoading.style.display  = 'block';
+  loginFormWrap.style.display = 'none';
+
+  try {
+    // SEMPRE busca do Supabase primeiro
+    const loaded = await dbLoad();
+    if (!loaded) {
+      // Se não tiver nada no Supabase ainda, usa o local
+      loadState();
     }
-  }catch(e){}
-  loginLoading.style.display='none';loginFormWrap.style.display='block';
+
+    // Verifica sessão ativa
+    const { data: { session } } = await _supabase.auth.getSession();
+    if (session) {
+      const email = session.user.email;
+      const u = users.find(x => x.email && x.email.toLowerCase() === email.toLowerCase());
+      if (u) { login(u); return; }
+    }
+  } catch (e) {
+    console.warn('[iGreen] Erro no boot:', e);
+    loadState();
+  }
+
+  loginLoading.style.display  = 'none';
+  loginFormWrap.style.display = 'block';
 })();
-</script>
-</body>
-</html>
