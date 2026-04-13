@@ -649,7 +649,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 <div class="field"><label>Gestor Responsável</label><select id="new-team-manager"><option value="">Selecione...</option></select></div>
               </div>
               <div class="field"><label>Modelo de Avaliação</label>
-                <select id="new-team-criteria"><option value="global">🌐 Padrão Global</option></select>
+                <select id="new-team-criteria"><option value="">— Selecione um modelo —</option></select>
               </div>
               <div style="display:flex;gap:8px;margin-top:4px">
                 <button onclick="cfgAddTeam()" class="btn btn-dark btn-sm">Criar Equipe</button>
@@ -712,30 +712,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             <div id="cfg-criteria-editor"></div>
           </div>
           <div class="card" style="margin-top:12px">
-            <div class="card-title" style="margin-bottom:.9rem">Pontuação — Modelo Padrão Global</div>
-            <div class="g2" style="align-items:start">
-              <div>
-                <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">Itens de Qualidade</div>
-                <div id="cfg-scoring-items"></div>
-                <div style="display:flex;gap:6px;margin-top:8px">
-                  <input id="new-qi-label" placeholder="Descrição do item..." style="flex:1;font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;">
-                  <input id="new-qi-pts" type="number" min="0" max="200" placeholder="pts" style="width:54px;font-size:12px;padding:6px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:center;outline:none;">
-                  <button onclick="cfgAddQItem()" style="background:var(--green);color:#fff;border:none;border-radius:var(--r);padding:6px 12px;font-size:12px;cursor:pointer;font-weight:700">+ Item</button>
-                </div>
-                <div style="margin-top:8px;font-size:11px;color:var(--text2)">Total desconto: <strong id="cfg-q-total">—</strong> pts</div>
-              </div>
-              <div>
-                <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">Pontuação Global</div>
-                <div class="sc-row" style="border-color:var(--green)"><span style="flex:1;font-size:12px;font-weight:700">Nota máxima</span><input type="number" id="cfg-max-score" value="60" onchange="cfgSaveScoring()"><span style="font-size:11px;color:var(--text2)">pts</span></div>
-                <div style="margin-top:8px">
-                  <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Alterar PIN Admin</div>
-                  <div style="display:flex;gap:6px">
-                    <input type="password" id="cfg-new-pin" placeholder="Novo PIN (4 dígitos)" maxlength="4" style="flex:1;font-size:13px;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;">
-                    <button onclick="cfgChangePin()" class="btn btn-dark btn-sm">Salvar</button>
-                  </div>
-                </div>
-                <div style="margin-top:10px"><button onclick="cfgResetQItems()" class="btn btn-sec btn-sm">↺ Restaurar padrão</button></div>
-              </div>
+            <div class="card-title" style="margin-bottom:.9rem">🔐 PIN de Administrador</div>
+            <div style="display:flex;gap:6px;max-width:320px">
+              <input type="password" id="cfg-new-pin" placeholder="Novo PIN (4 dígitos)" maxlength="4" style="flex:1;font-size:13px;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;">
+              <button onclick="cfgChangePin()" class="btn btn-dark btn-sm">Salvar PIN</button>
             </div>
           </div>
         </div>
@@ -804,54 +784,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 
 <script>
-const K={STATE:'qd_state_v7',CRITERIA:'qd_criteria_v7',PIN:'qd_pin_v6',GOALS:'qd_goals_v6',SCORING:'qd_scoring_v6'};
+const K={STATE:'qd_state_v8',PIN:'qd_pin_v6',GOALS:'qd_goals_v6',SCORING:'qd_scoring_v6'};
 function ls(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}}
 function ss(k,v){localStorage.setItem(k,JSON.stringify(v))}
 
-const CRITERIA_DEF={
-  id:'global',name:'Padrão Global',maxScore:60,monPerOp:8,
-  items:[
-    {id:'q1',label:'Não questionou o motivo do cancelamento',penalty:9},
-    {id:'q2',label:'Não buscou resolver o problema do cliente',penalty:12},
-    {id:'q3',label:'Não perguntou se o cliente possui dúvida',penalty:6},
-    {id:'q4',label:'Não perguntou sobre app/benefícios',penalty:3},
-    {id:'q5',label:'Não pediu avaliação',penalty:6},
-  ],
-  criticalItems:[
-    {id:'c1',label:'Passou informação incorreta ao cliente'},
-    {id:'c2',label:'Não explicou o processo de cancelamento'},
-    {id:'c3',label:'Contra-argumentação de cancelamento'},
-    {id:'c4',label:'Agiu de forma ríspida com o cliente'},
-    {id:'c5',label:'Tabulação incorreta'},
-  ]
-};
-const SCORING_DEF={maxScore:60,items:CRITERIA_DEF.items};
+const CRITERIA_EMPTY={id:'',name:'',maxScore:60,monPerOp:8,items:[],criticalItems:[]};
+const SCORING_DEF={maxScore:60,items:[]};
 
-function getAllCriteria(){const s=ls(K.CRITERIA)||{};if(!s.global)s.global=CRITERIA_DEF;return s;}
-function getCriteria(cid){return getAllCriteria()[cid||'global']||CRITERIA_DEF;}
-function saveCriteria(all){ss(K.CRITERIA,all);}
-function getTeamCriteria(teamId){const t=teams.find(x=>x.id===teamId);return getCriteria(t?.criteriaId||'global');}
-function MAX(cid){return getCriteria(cid).maxScore;}
-function getScoring(){const s=ls(K.SCORING)||SCORING_DEF;if(!s.items)s.items=SCORING_DEF.items;return s;}
+function getAllCriteria(){return criteria||{};}
+function getCriteria(cid){return (criteria||{})[cid]||CRITERIA_EMPTY;}
+function saveCriteria(all){criteria=all;saveState();}
+function getTeamCriteria(teamId){const t=teams.find(x=>x.id===teamId);if(!t?.criteriaId)return CRITERIA_EMPTY;return getCriteria(t.criteriaId);}
+function MAX(cid){return getCriteria(cid).maxScore||60;}
+function getScoring(){const s=ls(K.SCORING)||SCORING_DEF;if(!s.items)s.items=[];return s;}
 function getGoals(){return ls(K.GOALS)||{};}
 function getTeamGoal(teamId){return(getGoals()[teamId])||{minScore:36,csatGoal:80,monGoal:8,monPerOp:8};}
 
 let adminPin=ls(K.PIN)||'1234';
 let cfgUnlocked=false;
-let users,teams,months,records;
+let users,teams,months,records,criteria;
 let selectedRecords=new Set();
 
 function loadState(){
   const s=ls(K.STATE);
-  if(s){users=s.users;teams=s.teams;months=s.months;records=s.records;}
+  if(s){users=s.users;teams=s.teams;months=s.months;records=s.records;criteria=s.criteria||{};}
   else seedState();
   if(!teams)teams=[];
   if(!users)users=[];
   if(!months)months=[];
   if(!records)records={};
+  if(!criteria)criteria={};
 }
 function seedState(){
-  teams=[];users=[];months=[];records={};
+  teams=[];users=[];months=[];records={};criteria={};
   saveState();
 }
 
@@ -1362,8 +1327,7 @@ function renderAdminSettings(){
   document.getElementById('cfg-agents').innerHTML=ops.map(renderUserTag).join('');
   document.getElementById('cfg-managers').innerHTML=mgrs.map(renderUserTag).join('');
   document.getElementById('cfg-months').innerHTML=months.map(m=>`<span class="tag">${m}<button class="tag-del" onclick="cfgRemMonth('${m}')">✕</button></span>`).join('');
-  renderCfgAssign();renderCfgScoringItems();cfgPopulateCriteriaTeamSel();cfgLoadTeamCriteria();
-  const mxEl=document.getElementById('cfg-max-score');if(mxEl)mxEl.value=getCriteria('global').maxScore;
+  renderCfgAssign();cfgPopulateCriteriaTeamSel();cfgLoadTeamCriteria();
 }
 
 function renderCfgTeams(){
@@ -1372,7 +1336,7 @@ function renderCfgTeams(){
   const allCrit=getAllCriteria();
   el.innerHTML=teams.map(t=>{
     const mgr=users.find(u=>u.id===t.managerId),ops=users.filter(u=>u.teamId===t.id&&u.role==='operador');
-    const critName=allCrit[t.criteriaId||'global']?.name||'Padrão Global';
+    const critName=t.criteriaId&&allCrit[t.criteriaId]?allCrit[t.criteriaId].name:'— Sem modelo —';
     return`<div class="team-cfg-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap"><div style="flex:1"><div style="font-size:14px;font-weight:700;margin-bottom:4px">${t.name}</div><div style="font-size:12px;color:var(--text2);margin-bottom:4px">Gestor: ${mgr?.name||'—'} · ${ops.length} operador${ops.length!==1?'es':''}</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="badge bg-blue" style="font-size:10px">📋 ${critName}</span></div></div><div style="display:flex;flex-direction:column;gap:5px;min-width:140px"><select id="team-model-${t.id}" style="font-size:11px;padding:4px 7px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;" onchange="cfgSetTeamCriteria('${t.id}',this.value)">${Object.values(allCrit).map(cr=>`<option value="${cr.id}" ${(t.criteriaId||'global')===cr.id?'selected':''}>${cr.id==='global'?'🌐 ':''} ${cr.name}</option>`).join('')}</select><button onclick="cfgRemTeam('${t.id}')" class="btn btn-danger btn-sm" style="font-size:11px">🗑 Excluir Equipe</button></div></div></div>`;
   }).join('');
 }
@@ -1382,12 +1346,12 @@ function cfgShowAddTeam(){
   form.style.display=form.style.display==='none'?'block':'none';
   const mgrSel=document.getElementById('new-team-manager'),critSel=document.getElementById('new-team-criteria');
   if(mgrSel){const mgrs=users.filter(u=>u.role==='gestor');mgrSel.innerHTML='<option value="">Selecione...</option>'+mgrs.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');}
-  if(critSel){const all=getAllCriteria();critSel.innerHTML=Object.values(all).map(cr=>`<option value="${cr.id}">${cr.id==='global'?'🌐 ':''} ${cr.name}</option>`).join('');}
+  if(critSel){const all=getAllCriteria();const ms=Object.values(all);critSel.innerHTML='<option value="">— Selecione um modelo —</option>'+ms.map(cr=>`<option value="${cr.id}">${cr.name}</option>`).join('');}
 }
 function cfgAddTeam(){
   const name=document.getElementById('new-team-name')?.value.trim();
   const managerId=document.getElementById('new-team-manager')?.value;
-  const criteriaId=document.getElementById('new-team-criteria')?.value||'global';
+  const criteriaId=document.getElementById('new-team-criteria')?.value||'';
   const errEl=document.getElementById('add-team-err');
   if(errEl)errEl.textContent='';
   if(!name){if(errEl)errEl.textContent='Informe o nome da equipe.';return;}
@@ -1531,10 +1495,13 @@ function cfgResetQItems(){if(!confirm('Restaurar itens padrão?'))return;const s
 function cfgPopulateCriteriaTeamSel(){
   const sel=document.getElementById('cfg-criteria-team-sel');if(!sel)return;
   const all=getAllCriteria();
-  sel.innerHTML=Object.values(all).map(cr=>`<option value="${cr.id}">${cr.id==='global'?'🌐 ':''} ${cr.name}</option>`).join('');
+  const models=Object.values(all);
+  if(!models.length){sel.innerHTML='<option value="">— Nenhum modelo criado —</option>';return;}
+  sel.innerHTML=models.map(cr=>`<option value="${cr.id}">${cr.name}</option>`).join('');
 }
 function cfgLoadTeamCriteria(){
-  const cid=document.getElementById('cfg-criteria-team-sel')?.value||'global';
+  const cid=document.getElementById('cfg-criteria-team-sel')?.value||'';
+  if(!cid){const el=document.getElementById('cfg-criteria-editor');if(el)el.innerHTML='<p style="font-size:13px;color:var(--text2);padding:8px 0">Crie um modelo clicando em + Novo Modelo.</p>';return;}
   const cr=getCriteria(cid);
   const el=document.getElementById('cfg-criteria-editor');if(!el)return;
   el.innerHTML=`<div class="g2" style="align-items:start;margin-bottom:12px"><div><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">Nome do Modelo</div><div style="display:flex;gap:6px"><input id="cr-name" value="${cr.name}" style="flex:1;font-size:12px;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;"><input id="cr-maxscore" type="number" min="1" max="200" value="${cr.maxScore}" style="width:70px;font-size:13px;font-weight:700;padding:7px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:center;outline:none;"><span style="font-size:11px;color:var(--text2);align-self:center">pts máx.</span></div><div style="display:flex;gap:6px;margin-top:6px;align-items:center"><label style="font-size:11px;color:var(--text2)">Monitorias/op/mês:</label><input id="cr-monperop" type="number" min="1" max="50" value="${cr.monPerOp||8}" style="width:60px;font-size:13px;font-weight:700;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:center;outline:none;"></div></div><div><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">Equipes usando este modelo</div><div style="display:flex;flex-wrap:wrap;gap:5px">${teams.filter(t=>(t.criteriaId||'global')===cid).map(t=>`<span class="tag">${t.name}</span>`).join('')||'<span style="font-size:11px;color:var(--text3)">Nenhuma equipe</span>'}</div><div style="margin-top:8px;display:flex;gap:6px"><select id="cr-assign-team" style="flex:1;font-size:12px;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;"><option value="">Atribuir a uma equipe...</option>${teams.map(t=>`<option value="${t.id}">${t.name} (${getCriteria(t.criteriaId||'global').name})</option>`).join('')}</select><button onclick="cfgAssignCriteriaToTeam('${cid}')" class="btn btn-sec btn-sm">Atribuir</button></div></div></div><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Itens de Qualidade (desconto parcial)</div><div id="cr-items-list">${cr.items.map(it=>`<div class="sc-row cr-item-row" data-id="${it.id}" data-cid="${cid}"><span style="color:var(--text3);font-size:12px;flex-shrink:0">⠿</span><input type="text" class="cr-item-label" value="${it.label.replace(/"/g,'&quot;')}" style="flex:1;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;min-width:0"><input type="number" class="cr-item-penalty" min="0" max="200" value="${it.penalty}" style="width:54px;font-size:13px;font-weight:700;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);text-align:center;outline:none;flex-shrink:0"><span style="font-size:11px;color:var(--text2)">pts</span><button onclick="cfgRemCriteriaItem('${cid}','${it.id}')" class="del-btn">✕</button></div>`).join('')}</div><div style="display:flex;gap:6px;margin-top:8px"><input id="cr-new-label" placeholder="Novo critério de qualidade..." style="flex:1;font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;"><input id="cr-new-pts" type="number" min="0" placeholder="pts" style="width:54px;font-size:12px;padding:6px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);text-align:center;outline:none;"><button onclick="cfgAddCriteriaItem('${cid}')" style="background:var(--green);color:#fff;border:none;border-radius:var(--r);padding:6px 12px;font-size:12px;cursor:pointer;font-weight:700">+ Item</button></div><div style="font-size:11px;font-weight:700;color:var(--text2);margin:14px 0 6px;text-transform:uppercase">Itens Críticos (zeram a monitoria)</div><div id="cr-crit-list">${cr.criticalItems.map(it=>`<div class="sc-row cr-crit-row" data-id="${it.id}" data-cid="${cid}" style="border-color:#ffccca;"><span style="color:var(--red);font-size:12px;flex-shrink:0">⛔</span><input type="text" class="cr-crit-label" value="${it.label.replace(/"/g,'&quot;')}" style="flex:1;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;min-width:0"><span style="font-size:11px;font-weight:700;color:var(--red)">Zera</span><button onclick="cfgRemCritItem('${cid}','${it.id}')" class="del-btn">✕</button></div>`).join('')}</div><div style="display:flex;gap:6px;margin-top:8px"><input id="cr-new-crit-label" placeholder="Novo item crítico..." style="flex:1;font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;"><button onclick="cfgAddCritItem('${cid}')" style="background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:6px 12px;font-size:12px;cursor:pointer;font-weight:700">+ Crítico</button></div><div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button onclick="cfgSaveCurrentCriteria('${cid}')" class="btn btn-dark btn-sm">💾 Salvar Modelo</button>${cid!=='global'?`<button onclick="cfgDeleteCriteria('${cid}')" class="btn btn-danger btn-sm">🗑 Excluir Modelo</button>`:''}</div><div id="cr-save-msg" style="font-size:12px;color:var(--green);margin-top:8px;display:none">✓ Modelo salvo com sucesso!</div>`;
@@ -1542,7 +1509,7 @@ function cfgLoadTeamCriteria(){
 
 function cfgSaveCurrentCriteria(cid){
   const all=getAllCriteria();
-  const cr=all[cid]||JSON.parse(JSON.stringify(CRITERIA_DEF));cr.id=cid;
+  const cr=all[cid]||JSON.parse(JSON.stringify(CRITERIA_EMPTY));cr.id=cid;
   cr.name=document.getElementById('cr-name')?.value||cr.name;
   cr.maxScore=parseInt(document.getElementById('cr-maxscore')?.value)||60;
   cr.monPerOp=parseInt(document.getElementById('cr-monperop')?.value)||8;
@@ -1558,7 +1525,7 @@ function cfgSaveCurrentCriteria(cid){
 function cfgAddCriteriaItem(cid){
   const l=document.getElementById('cr-new-label')?.value.trim(),p=parseInt(document.getElementById('cr-new-pts')?.value)||0;
   if(!l)return;
-  const all=getAllCriteria(),cr=all[cid]||JSON.parse(JSON.stringify(CRITERIA_DEF));
+  const all=getAllCriteria(),cr=all[cid]||JSON.parse(JSON.stringify(CRITERIA_EMPTY));
   cr.id=cid;cr.items.push({id:'ci'+Date.now(),label:l,penalty:p});all[cid]=cr;saveCriteria(all);cfgLoadTeamCriteria();
 }
 function cfgRemCriteriaItem(cid,itemId){
@@ -1568,7 +1535,7 @@ function cfgRemCriteriaItem(cid,itemId){
 }
 function cfgAddCritItem(cid){
   const l=document.getElementById('cr-new-crit-label')?.value.trim();if(!l)return;
-  const all=getAllCriteria(),cr=all[cid]||JSON.parse(JSON.stringify(CRITERIA_DEF));
+  const all=getAllCriteria(),cr=all[cid]||JSON.parse(JSON.stringify(CRITERIA_EMPTY));
   cr.id=cid;if(!cr.criticalItems)cr.criticalItems=[];
   cr.criticalItems.push({id:'cc'+Date.now(),label:l});all[cid]=cr;saveCriteria(all);cfgLoadTeamCriteria();
 }
@@ -1580,7 +1547,7 @@ function cfgRemCritItem(cid,itemId){
 function cfgNewCriteriaTemplate(){
   const name=prompt('Nome do novo modelo de avaliação:');if(!name)return;
   const id='crit_'+Date.now(),all=getAllCriteria();
-  all[id]={...JSON.parse(JSON.stringify(CRITERIA_DEF)),id,name};
+  all[id]={...JSON.parse(JSON.stringify(CRITERIA_EMPTY)),id,name};
   saveCriteria(all);cfgPopulateCriteriaTeamSel();renderCfgTeams();
   const sel=document.getElementById('cfg-criteria-team-sel');if(sel){sel.value=id;cfgLoadTeamCriteria();}
 }
@@ -1611,9 +1578,9 @@ function updPinDots(){for(let i=0;i<4;i++)document.getElementById('pd'+i).classL
 
 function getModalCriteria(){
   const agId=document.getElementById('f-agent')?.value;
-  if(agId){const u2=users.find(x=>x.id===agId);if(u2?.teamId)return getTeamCriteria(u2.teamId);}
-  if(currentUser?.teamId)return getTeamCriteria(currentUser.teamId);
-  return getCriteria('global');
+  if(agId){const u2=users.find(x=>x.id===agId);if(u2?.teamId){const sc=getTeamCriteria(u2.teamId);if(sc&&sc.id)return sc;}}
+  if(currentUser?.teamId){const sc=getTeamCriteria(currentUser.teamId);if(sc&&sc.id)return sc;}
+  return CRITERIA_EMPTY;
 }
 function buildModalDropdowns(){
   const ms=document.getElementById('f-month');
@@ -1636,10 +1603,12 @@ function buildModalDropdowns(){
 }
 function buildModalChecks(){
   const sc=getModalCriteria();
-  document.getElementById('modal-quality').innerHTML=sc.items.map(it=>`<div class="chk-item" onclick="tgl('${it.id}')"><input type="checkbox" id="${it.id}" onchange="updScore()"><span class="chk-text">${it.label}</span><span class="chk-pts">−${it.penalty} pts</span></div>`).join('');
-  document.getElementById('modal-critical').innerHTML=sc.criticalItems.map(it=>`<div class="chk-item crit" onclick="tgl('${it.id}')"><input type="checkbox" id="${it.id}" onchange="updScore()"><span class="chk-text">${it.label}</span><span class="chk-pts" style="color:var(--red)">Zera</span></div>`).join('');
-  document.getElementById('f-max-label').textContent=`(máx. ${sc.maxScore} pts)`;
-  document.getElementById('score-prev').textContent=sc.maxScore;
+  const noModel='<div style="font-size:12px;color:var(--text2);padding:8px 0">Nenhum critério definido para esta equipe. Configure em Configurações → Critérios por Equipe.</div>';
+  document.getElementById('modal-quality').innerHTML=(sc.items||[]).length?sc.items.map(it=>`<div class="chk-item" onclick="tgl('${it.id}')"><input type="checkbox" id="${it.id}" onchange="updScore()"><span class="chk-text">${it.label}</span><span class="chk-pts">−${it.penalty} pts</span></div>`).join(''):noModel;
+  document.getElementById('modal-critical').innerHTML=(sc.criticalItems||[]).length?sc.criticalItems.map(it=>`<div class="chk-item crit" onclick="tgl('${it.id}')"><input type="checkbox" id="${it.id}" onchange="updScore()"><span class="chk-text">${it.label}</span><span class="chk-pts" style="color:var(--red)">Zera</span></div>`).join(''):'';
+  const mx=sc.maxScore||60;
+  document.getElementById('f-max-label').textContent=`(máx. ${mx} pts)`;
+  document.getElementById('score-prev').textContent=mx;
 }
 function tgl(id){const cb=document.getElementById(id);if(cb){cb.checked=!cb.checked;updScore();}}
 function updScore(){
@@ -1762,7 +1731,7 @@ async function dbSave(){
   try{
     await _supabase.from('ig_state').upsert({
       id:'main',
-      payload:{users,teams,months,records},
+      payload:{users,teams,months,records,criteria},
       updated_at:new Date().toISOString()
     },{onConflict:'id'});
   }catch(e){console.warn('[DB save error]',e);}
@@ -1773,13 +1742,13 @@ async function dbLoad(){
     const{data,error}=await _supabase.from('ig_state').select('payload').eq('id','main').single();
     if(error||!data)return false;
     const p=data.payload;
-    if(p?.users?.length){users=p.users;teams=p.teams;months=p.months;records=p.records;ss(K.STATE,{users,teams,months,records});return true;}
+    if(p?.users?.length){users=p.users;teams=p.teams;months=p.months;records=p.records;criteria=p.criteria||{};ss(K.STATE,{users,teams,months,records,criteria});return true;}
     return false;
   }catch(e){console.warn('[DB load error]',e);return false;}
 }
 
 function saveState(){
-  ss(K.STATE,{users,teams,months,records});
+  ss(K.STATE,{users,teams,months,records,criteria});
   clearTimeout(_syncTimeout);
   _syncTimeout=setTimeout(()=>dbSave(),1500);
 }
