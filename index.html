@@ -388,7 +388,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
     <div class="header-right">
       <select class="month-sel" id="global-month" onchange="onMonthChange()"></select>
-      <select class="filter-sel" id="filter-team" onchange="onTeamFilter()" style="display:none"></select>
+      <div id="filter-team-wrap" style="display:none;position:relative">
+        <button id="filter-team-btn" onclick="toggleTeamDropdown()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;outline:none;display:flex;align-items:center;gap:6px;white-space:nowrap">
+          <span id="filter-team-label">Todas as equipes</span> ▾
+        </button>
+        <div id="filter-team-dropdown" style="display:none;position:absolute;top:110%;right:0;background:#2c2c2e;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 0;min-width:200px;z-index:500;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+          <div id="filter-team-options"></div>
+        </div>
+      </div>
       <div class="user-chip" onclick="">
         <div class="av user-chip-avatar" id="hdr-avatar" style="width:24px;height:24px;font-size:10px"></div>
         <span class="user-chip-name" id="hdr-name"></span>
@@ -534,6 +541,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="view" id="view-gestor-compare">
         <div class="page-header"><div><div class="page-title">Comparativo de Operadores</div></div></div>
         <div class="card" style="margin-bottom:12px"><div style="position:relative;height:280px"><canvas id="chart-compare"></canvas></div></div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:.9rem">🧠 Perfil dos Colaboradores</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+            <span style="font-size:12px;color:var(--text2)">Filtrar por perfil:</span>
+            <select id="compare-perfil-filter" style="font-size:12px;padding:5px 10px;border:1px solid var(--border2);border-radius:20px;background:var(--bg);color:var(--text);outline:none" onchange="renderPerfilTable()">
+              <option value="">Todos os perfis</option>
+              <option value="analitico">🧠 Analítico</option>
+              <option value="comunicador">🗣️ Comunicador</option>
+              <option value="executor">🚀 Executor</option>
+              <option value="negociador">🤝 Negociador</option>
+              <option value="operacional">⚙️ Operacional</option>
+              <option value="em_desenvolvimento">📈 Em desenvolvimento</option>
+            </select>
+            <select id="compare-nivel-filter" style="font-size:12px;padding:5px 10px;border:1px solid var(--border2);border-radius:20px;background:var(--bg);color:var(--text);outline:none" onchange="renderPerfilTable()">
+              <option value="">Todos os níveis</option>
+              <option value="alto">⭐ Alto</option>
+              <option value="medio">🔘 Médio</option>
+              <option value="em_desenvolvimento">📈 Em desenvolvimento</option>
+            </select>
+          </div>
+          <div id="compare-perfil-table"></div>
+        </div>
         <div class="card">
           <div class="card-title" style="margin-bottom:.9rem">Tabela Comparativa</div>
           <div class="tw"><table class="tbl" id="compare-table"><thead><tr id="compare-thead"></tr></thead><tbody id="compare-tbody"></tbody></table></div>
@@ -770,9 +799,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         </div>
         <div class="score-prev-val" id="score-prev" style="color:var(--green)">60</div>
       </div>
-      <div class="fr2">
-        <div class="field"><label>Média de Qualidade (%)</label><input type="number" id="f-csat" min="0" max="100" placeholder="ex: 85"></div>
-        <div class="field"><label>Observações</label><input id="f-obs" placeholder="Comentários (opcional)"></div>
+      <div class="field"><label>Observações</label><input id="f-obs" placeholder="Comentários (opcional)"></div>
+      <div class="sep">Perfil do Colaborador</div>
+      <div class="fr2" style="margin-bottom:10px">
+        <div class="field">
+          <label>Perfil identificado</label>
+          <div id="f-perfil-options" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
+        </div>
+        <div class="field">
+          <label>Nível</label>
+          <div id="f-nivel-options" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
+        </div>
       </div>
     </div>
     <div class="mo-ft">
@@ -812,6 +849,26 @@ function ss(k,v){localStorage.setItem(k,JSON.stringify(v))}
 
 const CRITERIA_EMPTY={id:'',name:'',maxScore:60,monPerOp:8,items:[],criticalItems:[]};
 const SCORING_DEF={maxScore:60,items:[]};
+
+const PERFIS={
+  analitico:{id:'analitico',label:'Analítico',icon:'🧠',
+    desc:['Compreende rapidamente a demanda','Faz perguntas assertivas','Evita erros de interpretação','Usa bem as informações disponíveis']},
+  comunicador:{id:'comunicador',label:'Comunicador',icon:'🗣️',
+    desc:['Se expressa com clareza','Demonstra empatia','Mantém comunicação fluida','Explica bem processos']},
+  executor:{id:'executor',label:'Executor',icon:'🚀',
+    desc:['Age com rapidez','Foca na resolução','Evita retrabalho','É objetivo']},
+  negociador:{id:'negociador',label:'Negociador',icon:'🤝',
+    desc:['Contorna objeções','Persuasivo','Consegue reverter situações','Atua além do básico']},
+  operacional:{id:'operacional',label:'Operacional',icon:'⚙️',
+    desc:['Segue processos corretamente','Organizado','Baixo erro técnico','Consistência no padrão']},
+  em_desenvolvimento:{id:'em_desenvolvimento',label:'Em desenvolvimento',icon:'📈',
+    desc:['Dificuldade em múltiplos pontos','Necessita acompanhamento próximo','Insegurança na condução']}
+};
+const NIVEIS={
+  alto:{id:'alto',label:'Alto',color:'#B8860B',bg:'rgba(184,134,11,.12)',border:'rgba(184,134,11,.35)'},
+  medio:{id:'medio',label:'Médio',color:'#888',bg:'rgba(136,136,136,.12)',border:'rgba(136,136,136,.35)'},
+  em_desenvolvimento:{id:'em_desenvolvimento',label:'Em desenvolvimento',color:'#aaaaaa',bg:'rgba(170,170,170,.10)',border:'rgba(170,170,170,.3)'}
+};
 
 function getAllCriteria(){return criteria||{};}
 function getCriteria(cid){return (criteria||{})[cid]||CRITERIA_EMPTY;}
@@ -900,11 +957,11 @@ function buildHeader(){
   roleEl.textContent=u.role==='admin'?'Admin':u.role==='gestor'?'Gestor':'Operador';
   roleEl.className='user-chip-role role-'+(u.role==='operador'?'op':u.role);
   document.getElementById('btn-new-mon').style.display=u.role!=='operador'?'block':'none';
-  const tf=document.getElementById('filter-team');
+  const tw=document.getElementById('filter-team-wrap');
   if(u.role==='admin'){
-    tf.style.display='block';
-    tf.innerHTML='<option value="">Todas as equipes</option>'+teams.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
-  }else tf.style.display='none';
+    tw.style.display='block';
+    renderTeamFilterOptions();
+  }else if(tw) tw.style.display='none';
   const team=teams.find(t=>t.id===u.teamId);
   document.getElementById('sb-user-info').innerHTML=`<span style="font-size:12px;font-weight:600;color:var(--text)">${u.name}</span><br><span style="font-size:11px;color:var(--text2)">${u.role==='admin'?'Administrador':u.role==='gestor'?'Gestor · '+(team?.name||''):'Operador · '+(team?.name||'')}</span>`;
 }
@@ -919,7 +976,50 @@ function buildNav(){
   document.getElementById('nav-op').style.display=r==='operador'?'block':'none';
 }
 function onMonthChange(){currentMonth=document.getElementById('global-month').value;refreshView();}
-function onTeamFilter(){currentTeamFilter=document.getElementById('filter-team').value;refreshView();}
+let selectedTeams=new Set();
+function toggleTeamDropdown(){
+  const dd=document.getElementById('filter-team-dropdown');
+  if(dd)dd.style.display=dd.style.display==='none'?'block':'none';
+}
+function renderTeamFilterOptions(){
+  const el=document.getElementById('filter-team-options');if(!el)return;
+  el.innerHTML=`<label style="display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.8);transition:background .1s" onmouseover="this.style.background='rgba(255,255,255,.08)'" onmouseout="this.style.background=''">
+    <input type="checkbox" id="ft-all" ${selectedTeams.size===0?'checked':''} onchange="selectAllTeams(this.checked)" style="accent-color:#00cc44">
+    <span>Todas as equipes</span>
+  </label>
+  <div style="height:1px;background:rgba(255,255,255,.1);margin:4px 0"></div>
+  ${teams.map(t=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.8);transition:background .1s" onmouseover="this.style.background='rgba(255,255,255,.08)'" onmouseout="this.style.background=''">
+    <input type="checkbox" id="ft-${t.id}" value="${t.id}" ${selectedTeams.has(t.id)?'checked':''} onchange="toggleTeamFilter('${t.id}',this.checked)" style="accent-color:#00cc44">
+    <span>${t.name}</span>
+  </label>`).join('')}`;
+}
+function selectAllTeams(checked){
+  if(checked){selectedTeams.clear();}
+  document.querySelectorAll('[id^="ft-"]').forEach(cb=>{cb.checked=checked||cb.id==='ft-all';});
+  if(!checked)return;
+  updateTeamFilterLabel();refreshView();
+}
+function toggleTeamFilter(teamId,checked){
+  if(checked)selectedTeams.add(teamId);else selectedTeams.delete(teamId);
+  const allCb=document.getElementById('ft-all');
+  if(allCb)allCb.checked=selectedTeams.size===0;
+  updateTeamFilterLabel();refreshView();
+}
+function updateTeamFilterLabel(){
+  const el=document.getElementById('filter-team-label');if(!el)return;
+  if(selectedTeams.size===0){el.textContent='Todas as equipes';}
+  else if(selectedTeams.size===1){const t=teams.find(x=>x.id===[...selectedTeams][0]);el.textContent=t?.name||'1 equipe';}
+  else{el.textContent=selectedTeams.size+' equipes';}
+}
+function onTeamFilter(){currentTeamFilter=document.getElementById('filter-team')?.value||'';refreshView();}
+// Close dropdown when clicking outside
+document.addEventListener('click',e=>{
+  const wrap=document.getElementById('filter-team-wrap');
+  if(wrap&&!wrap.contains(e.target)){
+    const dd=document.getElementById('filter-team-dropdown');
+    if(dd)dd.style.display='none';
+  }
+});
 function nav(el){
   document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
   el.classList.add('active');navTo(el.dataset.v);
@@ -953,7 +1053,7 @@ function getMonthData(month){
 function filtered(month){
   let d=getMonthData(month);
   if(currentUser.role==='gestor')d=d.filter(r=>r.teamId===currentUser.teamId);
-  else if(currentTeamFilter)d=d.filter(r=>r.teamId===currentTeamFilter);
+  else if(selectedTeams&&selectedTeams.size>0)d=d.filter(r=>selectedTeams.has(r.teamId));
   return d;
 }
 function opData(month,agentId){
@@ -962,7 +1062,7 @@ function opData(month,agentId){
 }
 function avgOf(arr,k){return arr.length?Math.round(arr.reduce((s,x)=>s+x[k],0)/arr.length):0;}
 function pct(a,b){return b?Math.round(a/b*100):0;}
-function csat(arr){const v=arr.filter(r=>r.csatScore!=null);return v.length?Math.round(v.reduce((s,r)=>s+r.csatScore,0)/v.length):0;}
+function csat(arr){if(!arr.length)return 0;const v=arr.filter(r=>r.maxScore&&r.maxScore>0);return v.length?Math.round(v.reduce((s,r)=>s+Math.round(r.score/r.maxScore*100),0)/v.length):0;}
 function agentStats(month,agentId){
   const rows=opData(month,agentId);
   if(!rows.length)return null;
@@ -1123,7 +1223,7 @@ function renderGestorOperators(){
     const st=avStyle(u.name),avgs=months.map(m=>{const s=agentStats(m,u.id);return s?s.avg:null;});
     const valid=avgs.filter(v=>v!==null),last=valid[valid.length-1]??0;
     const trend=valid.length>=2?last-valid[valid.length-2]:null,cls=classify(last);
-    return`<div class="cc" onclick="openGestorOp('${u.id}')"><div style="display:flex;align-items:center;gap:9px;margin-bottom:.75rem"><div class="av" style="width:36px;height:36px;background:${st.bg};color:${st.fg};font-size:13px">${initials(u.name)}</div><div><div style="font-size:12px;font-weight:700;line-height:1.3">${u.name}</div><span class="badge ${cls.c}" style="margin-top:2px">${cls.l}</span></div></div><div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:7px"><div><div style="font-size:10px;color:var(--text2)">Última média</div><div style="font-size:20px;font-weight:800;color:${scoreColor(last)}">${last}</div></div>${trend!==null?`<div style="font-size:12px;font-weight:700;color:${trend>0?'#34C759':trend<0?'#FF3B30':'#6e6e73'}">${trend>0?'↑ +':'↓ '}${trend}</div>`:''}</div><div style="display:flex;gap:2px">${months.slice(-6).map((m,i)=>{const v=avgs[months.length-6+i];return`<div style="flex:1;height:4px;border-radius:2px;background:${v===null?'var(--border)':scoreColor(v)};opacity:${v===null?.3:1}"></div>`;}).join('')}</div></div>`;
+    return`<div class="cc" onclick="openGestorOp('${u.id}')"><div style="display:flex;align-items:center;gap:9px;margin-bottom:.75rem"><div class="av" style="width:36px;height:36px;background:${st.bg};color:${st.fg};font-size:13px">${initials(u.name)}</div><div><div style="font-size:12px;font-weight:700;line-height:1.3">${u.name}</div><span class="badge ${cls.c}" style="margin-top:2px">${cls.l}</span></div></div><div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:7px"><div><div style="font-size:10px;color:var(--text2)">Última média</div><div style="font-size:20px;font-weight:800;color:${scoreColor(last)}">${last}</div></div>${trend!==null?`<div style="font-size:12px;font-weight:700;color:${trend>0?'#34C759':trend<0?'#FF3B30':'#6e6e73'}">${trend>0?'↑ +':'↓ '}${trend}</div>`:''}</div>${(()=>{const lastMon=months.slice().reverse().flatMap(m=>(records[m]||[]).filter(r=>r.agentId===u.id&&r.perfil)).slice(0,1)[0];if(!lastMon)return'';const perfis=Array.isArray(lastMon.perfil)?lastMon.perfil:[lastMon.perfil];const nv=lastMon.nivel?NIVEIS[lastMon.nivel]:null;return`<div style="margin-bottom:6px;display:flex;flex-wrap:wrap;gap:3px">${perfis.map(pid=>{const p=PERFIS[pid];return p?`<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid ${nv?nv.border:'var(--border)'};background:${nv?nv.bg:'var(--bg2)'};color:${nv?nv.color:'var(--text2)'}">${p.icon} ${p.label}</span>`:''}).join('')}${nv?`<span style="font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid ${nv.border};background:${nv.bg};color:${nv.color}">${nv.label}</span>`:''}</div>`;})()}<div style="display:flex;gap:2px">${months.slice(-6).map((m,i)=>{const v=avgs[months.length-6+i];return`<div style="flex:1;height:4px;border-radius:2px;background:${v===null?'var(--border)':scoreColor(v)};opacity:${v===null?.3:1}"></div>`;}).join('')}</div></div>`;
   }).join('');
 }
 
@@ -1162,7 +1262,8 @@ function renderOpDetailContent(uid,containerId){
   filteredRows.flatMap(r=>[...r.failedQ,...r.failedC]).forEach(f=>{failCount[f]=(failCount[f]||0)+1;});
   const topFails=Object.entries(failCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const el=document.getElementById(containerId);
-  el.innerHTML=`<div class="op-hero"><div class="av" style="width:56px;height:56px;background:${st.bg};color:${st.fg};font-size:18px;flex-shrink:0">${initials(u.name)}</div><div style="flex:1"><div style="font-size:18px;font-weight:800;color:#fff">${u.name}</div><div style="font-size:12px;color:rgba(255,255,255,.5)">${team?.name||''}</div><div style="margin-top:5px;display:flex;gap:6px"><span class="badge ${cls.c}">${cls.l}</span><span style="font-size:11px;color:rgba(255,255,255,.4);align-self:center">${monthLabel}</span></div></div><div style="text-align:right;flex-shrink:0"><div style="font-size:34px;font-weight:800;color:${dispTotal>0?scoreColor(dispAvg):scoreColor(overallAvg)}">${dispTotal>0?dispAvg:overallAvg}</div><div style="font-size:11px;color:rgba(255,255,255,.4)">${dispTotal>0?monthLabel+' · 60 pts':'média geral'}</div><div style="font-size:13px;font-weight:700;color:var(--red);margin-top:3px">−${dispTotalLoss} pts perdidos</div></div></div><div class="kpi-grid" style="margin-bottom:1.1rem"><div class="kpi" style="--kpi-color:var(--blue)"><div class="kpi-label">Monitorias</div><div class="kpi-val">${dispTotal}</div><div class="kpi-sub">${monthLabel}</div></div><div class="kpi" style="--kpi-color:var(--red)"><div class="kpi-label">Perda média/mon.</div><div class="kpi-val c-red">−${dispLoss}</div><div class="kpi-sub">pts perdidos</div></div><div class="kpi" style="--kpi-color:var(--amber)"><div class="kpi-label">Média de Qualidade</div><div class="kpi-val" style="color:${dispCsat>=goal.csatGoal?'var(--green)':'var(--amber)'}">${dispCsat}%</div><div class="kpi-sub">Meta: ${goal.csatGoal}%</div></div><div class="kpi" style="--kpi-color:var(--red)"><div class="kpi-label">Zeradas</div><div class="kpi-val c-red">${dispZeros}</div><div class="kpi-sub">${monthLabel}</div></div></div><div class="card" style="margin-bottom:12px"><div class="card-hd"><span class="card-title">Evolução Mensal</span></div><div class="month-cmp">${months.map((m,i)=>{const v=avgs[i],l=losses[i],prev=i>0?avgs[i-1]:null,delta2=v!==null&&prev!==null?v-prev:null,isCur=m===currentMonth&&!isAll;return`<div class="mc ${isCur?'curr':''}">${isCur?'<div class="mc-tag">atual</div>':''}<div style="font-size:10px;color:var(--text2)">${m}</div><div style="font-size:20px;font-weight:800;color:${v!==null?scoreColor(v):'var(--text3)'}">${v!==null?v:'—'}</div>${l!==null?`<div style="font-size:11px;font-weight:700;color:var(--red)">−${l}</div>`:''}${delta2!==null?`<div style="font-size:11px;font-weight:700;color:${delta2>0?'#34C759':delta2<0?'#FF3B30':'#6e6e73'}">${delta2>0?'↑ +':'↓ '}${delta2}</div>`:''}</div>`;}).join('')}</div><div style="position:relative;height:180px"><canvas id="chart-op-det-${uid}"></canvas></div></div><div class="card" style="margin-bottom:12px"><div class="card-hd"><span class="card-title">Últimas Monitorias</span></div><div class="tw"><table class="tbl"><thead><tr><th>Data</th><th>Protocolo</th><th style="text-align:center">Pontuação</th><th style="text-align:center">Pts Perdidos</th><th style="text-align:center">Status</th><th>Observação</th></tr></thead><tbody>${[...filteredRows].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12).map(r=>{const cls2=classify(r.score,r.maxScore);return`<tr><td style="font-size:11px;color:var(--text2);white-space:nowrap">${r.date?r.date.slice(8)+'/'+r.date.slice(5,7):'—'}</td><td style="font-family:monospace;font-size:12px;font-weight:600">${r.proto||'—'}</td><td style="text-align:center;font-weight:800;font-size:14px;color:${scoreColor(r.score,r.maxScore)}">${r.score}<span style="font-size:10px;font-weight:400;color:var(--text3)">/${r.maxScore||60}</span></td><td style="text-align:center;font-weight:800;color:var(--red)">−${r.loss}</td><td style="text-align:center"><span class="badge ${cls2.c}">${cls2.l}</span></td><td style="font-size:11px;color:var(--text2);max-width:200px;line-height:1.4">${r.obs&&r.obs.trim()?r.obs:'<span style="color:var(--text3)">—</span>'}</td></tr>`;}).join('')}</tbody></table>
+  el.innerHTML=`<div class="op-hero"><div class="av" style="width:56px;height:56px;background:${st.bg};color:${st.fg};font-size:18px;flex-shrink:0">${initials(u.name)}</div><div style="flex:1"><div style="font-size:18px;font-weight:800;color:#fff">${u.name}</div><div style="font-size:12px;color:rgba(255,255,255,.5)">${team?.name||''}</div><div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap"><span class="badge ${cls.c}">${cls.l}</span><span style="font-size:11px;color:rgba(255,255,255,.4);align-self:center">${monthLabel}</span>${(()=>{const pc={};filteredRows.forEach(r=>{if(r.perfil){const arr=Array.isArray(r.perfil)?r.perfil:[r.perfil];arr.forEach(pid=>{pc[pid]=(pc[pid]||0)+1;});}});const top=Object.entries(pc).sort((a,b)=>b[1]-a[1])[0];if(!top)return'';const p=PERFIS[top[0]];const lastNv=filteredRows.slice().reverse().find(r=>r.nivel);const nv=lastNv?NIVEIS[lastNv.nivel]:null;if(!p)return'';return`<span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:rgba(255,255,255,.12);color:#fff;align-self:center;border:1px solid rgba(255,255,255,.2)">${p.icon} ${p.label}</span>${nv?`<span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:rgba(255,255,255,.08);color:${nv.color};align-self:center;border:1px solid ${nv.border}">${nv.label}</span>`:''}`;})()}</div></div><div style="text-align:right;flex-shrink:0"><div style="font-size:34px;font-weight:800;color:${dispTotal>0?scoreColor(dispAvg):scoreColor(overallAvg)}">${dispTotal>0?dispAvg:overallAvg}</div><div style="font-size:11px;color:rgba(255,255,255,.4)">${dispTotal>0?monthLabel+' · 60 pts':'média geral'}</div><div style="font-size:13px;font-weight:700;color:var(--red);margin-top:3px">−${dispTotalLoss} pts perdidos</div></div></div>${(()=>{const perfisCount={};filteredRows.forEach(r=>{if(r.perfil){const arr=Array.isArray(r.perfil)?r.perfil:[r.perfil];arr.forEach(pid=>{perfisCount[pid]=(perfisCount[pid]||0)+1;});}});const lastNivel=filteredRows.slice().reverse().find(r=>r.nivel);const nv=lastNivel?NIVEIS[lastNivel.nivel]:null;const sorted=Object.entries(perfisCount).sort((a,b)=>b[1]-a[1]);if(!sorted.length)return'';return`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;border-radius:var(--r);margin-bottom:12px;border:1px solid ${nv?nv.border:'var(--border)'};background:${nv?nv.bg:'var(--bg2)'}"><div style="display:flex;gap:6px;flex-wrap:wrap;flex:1">${sorted.slice(0,3).map(([pid,cnt])=>{const p=PERFIS[pid];return p?`<span style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.5);color:${nv?nv.color:'var(--text)'}">${p.icon} ${p.label} <span style="font-size:10px;opacity:.7">${cnt}x</span></span>`:''}).join('')}</div>${nv?`<span style="font-size:12px;font-weight:700;color:${nv.color}">${nv.label}</span>`:''}<div style="width:100%;font-size:11px;color:var(--text2);margin-top:2px">${sorted.slice(0,1).map(([pid])=>PERFIS[pid]?.desc.slice(0,2).join(' • ')||'').join('')}</div></div>`;})()}
+<div class="kpi-grid" style="margin-bottom:1.1rem"><div class="kpi" style="--kpi-color:var(--blue)"><div class="kpi-label">Monitorias</div><div class="kpi-val">${dispTotal}</div><div class="kpi-sub">${monthLabel}</div></div><div class="kpi" style="--kpi-color:var(--red)"><div class="kpi-label">Perda média/mon.</div><div class="kpi-val c-red">−${dispLoss}</div><div class="kpi-sub">pts perdidos</div></div><div class="kpi" style="--kpi-color:var(--amber)"><div class="kpi-label">Média de Qualidade</div><div class="kpi-val" style="color:${dispCsat>=goal.csatGoal?'var(--green)':'var(--amber)'}">${dispCsat}%</div><div class="kpi-sub">Meta: ${goal.csatGoal}%</div></div><div class="kpi" style="--kpi-color:var(--red)"><div class="kpi-label">Zeradas</div><div class="kpi-val c-red">${dispZeros}</div><div class="kpi-sub">${monthLabel}</div></div></div><div class="card" style="margin-bottom:12px"><div class="card-hd"><span class="card-title">Evolução Mensal</span></div><div class="month-cmp">${months.map((m,i)=>{const v=avgs[i],l=losses[i],prev=i>0?avgs[i-1]:null,delta2=v!==null&&prev!==null?v-prev:null,isCur=m===currentMonth&&!isAll;return`<div class="mc ${isCur?'curr':''}">${isCur?'<div class="mc-tag">atual</div>':''}<div style="font-size:10px;color:var(--text2)">${m}</div><div style="font-size:20px;font-weight:800;color:${v!==null?scoreColor(v):'var(--text3)'}">${v!==null?v:'—'}</div>${l!==null?`<div style="font-size:11px;font-weight:700;color:var(--red)">−${l}</div>`:''}${delta2!==null?`<div style="font-size:11px;font-weight:700;color:${delta2>0?'#34C759':delta2<0?'#FF3B30':'#6e6e73'}">${delta2>0?'↑ +':'↓ '}${delta2}</div>`:''}</div>`;}).join('')}</div><div style="position:relative;height:180px"><canvas id="chart-op-det-${uid}"></canvas></div></div><div class="card" style="margin-bottom:12px"><div class="card-hd"><span class="card-title">Últimas Monitorias</span></div><div class="tw"><table class="tbl"><thead><tr><th>Data</th><th>Protocolo</th><th style="text-align:center">Pontuação</th><th style="text-align:center">Pts Perdidos</th><th style="text-align:center">Status</th><th>Observação</th></tr></thead><tbody>${[...filteredRows].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12).map(r=>{const cls2=classify(r.score,r.maxScore);return`<tr><td style="font-size:11px;color:var(--text2);white-space:nowrap">${r.date?r.date.slice(8)+'/'+r.date.slice(5,7):'—'}</td><td style="font-family:monospace;font-size:12px;font-weight:600">${r.proto||'—'}</td><td style="text-align:center;font-weight:800;font-size:14px;color:${scoreColor(r.score,r.maxScore)}">${r.score}<span style="font-size:10px;font-weight:400;color:var(--text3)">/${r.maxScore||60}</span></td><td style="text-align:center;font-weight:800;color:var(--red)">−${r.loss}</td><td style="text-align:center"><span class="badge ${cls2.c}">${cls2.l}</span></td><td style="font-size:11px;color:var(--text2);max-width:200px;line-height:1.4">${r.obs&&r.obs.trim()?r.obs:'<span style="color:var(--text3)">—</span>'}</td></tr>`;}).join('')}</tbody></table>
 <div style="display:flex;gap:16px;justify-content:flex-end;padding:10px 4px 2px;border-top:2px solid var(--border);margin-top:4px">
   <div style="font-size:12px;color:var(--text2)">Total de monitorias: <strong style="color:var(--text)">${filteredRows.length}</strong></div>
   <div style="font-size:12px;color:var(--text2)">Pontuação total: <strong style="color:${scoreColor(filteredRows.reduce((s,r)=>s+r.score,0)/Math.max(filteredRows.length,1),filteredRows[0]?.maxScore||60)}">${filteredRows.reduce((s,r)=>s+r.score,0)}</strong></div>
@@ -1172,6 +1273,41 @@ function renderOpDetailContent(uid,containerId){
   setTimeout(()=>{mkChart(`chart-op-det-${uid}`,{type:'line',data:{labels:months,datasets:[{label:'Pontuação',data:avgs,borderColor:'#00cc44',backgroundColor:'#00cc4412',pointRadius:5,tension:.3,fill:true,borderWidth:2.5,spanGaps:true},{label:'Pts perdidos',data:losses.map(v=>v!==null?-v:null),borderColor:'#FF3B30',backgroundColor:'#FF3B3010',pointRadius:4,tension:.3,fill:false,borderWidth:1.5,borderDash:[4,3],spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{ticks:{font:{size:10}},grid:{color:'#e0e0e522'}}}}});},50);
 }
 
+function renderPerfilTable(){
+  const filterPerfil=document.getElementById('compare-perfil-filter')?.value||'';
+  const filterNivel=document.getElementById('compare-nivel-filter')?.value||'';
+  const ops=users.filter(u=>u.role==='operador'&&u.teamId===currentUser.teamId);
+  // Get latest perfil/nivel for each operator from all months
+  const opPerfis=ops.map(u=>{
+    const allRows=months.flatMap(m=>(records[m]||[]).filter(r=>r.agentId===u.id&&r.perfil)).reverse();
+    const lastRow=allRows[0];
+    const perfis=lastRow?(Array.isArray(lastRow.perfil)?lastRow.perfil:[lastRow.perfil]):[];
+    const nivel=lastRow?.nivel||null;
+    return{user:u,perfis,nivel,lastRow};
+  });
+  // Apply filters
+  const filtered2=opPerfis.filter(op=>{
+    if(filterPerfil&&!op.perfis.includes(filterPerfil))return false;
+    if(filterNivel&&op.nivel!==filterNivel)return false;
+    return true;
+  });
+  const el=document.getElementById('compare-perfil-table');if(!el)return;
+  if(!filtered2.length){el.innerHTML='<p style="font-size:13px;color:var(--text2);padding:8px 0">Nenhum colaborador encontrado com os filtros selecionados.</p>';return;}
+  const st2=avStyle;
+  el.innerHTML=`<table class="tbl"><thead><tr><th>Colaborador</th><th>Perfis Identificados</th><th>Nível</th><th style="text-align:center">Últ. Pontuação</th><th style="text-align:center">Monitorias</th></tr></thead><tbody>${filtered2.map(op=>{
+    const s=agentStats(currentMonth,op.user.id);
+    const st=avStyle(op.user.name);
+    const nv=op.nivel?NIVEIS[op.nivel]:null;
+    const perfisHtml=op.perfis.length?op.perfis.map(pid=>{const p=PERFIS[pid];return p?`<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;border:1px solid ${nv?nv.border:'var(--border)'};background:${nv?nv.bg:'var(--bg2)'};color:${nv?nv.color:'var(--text2)'}">${p.icon} ${p.label}</span>`:''}).join(' '):'<span style="color:var(--text3);font-size:11px">—</span>';
+    return`<tr>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="av" style="width:28px;height:28px;background:${st.bg};color:${st.fg};font-size:10px">${initials(op.user.name)}</div><span style="font-weight:600;font-size:13px">${op.user.name}</span></div></td>
+      <td><div style="display:flex;gap:4px;flex-wrap:wrap">${perfisHtml}</div></td>
+      <td>${nv?`<span style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid ${nv.border};background:${nv.bg};color:${nv.color}">${nv.label}</span>`:'<span style="color:var(--text3);font-size:11px">—</span>'}</td>
+      <td style="text-align:center;font-weight:800;font-size:15px;color:${s?scoreColor(s.avg,s.maxScore):'var(--text3)'}">${s?s.avg:'—'}</td>
+      <td style="text-align:center;color:var(--text2);font-size:12px">${s?s.count:'0'}</td>
+    </tr>`;
+  }).join('')}</tbody></table>`;
+}
 function renderGestorCompare(){
   const ops=users.filter(u=>u.role==='operador'&&u.teamId===currentUser.teamId);
   const colors=['#34C759','#007AFF','#FF9500','#AF52DE','#FF3B30','#5AC8FA'];
@@ -1188,6 +1324,7 @@ function renderGestorCompare(){
     const overall=valid.length?Math.round(valid.reduce((a,b)=>a+b,0)/valid.length):0;
     return`<tr><td style="font-weight:600;font-size:13px">${u.name}</td>${avgs.map(v=>v!==null?`<td style="text-align:center;font-weight:700;color:${scoreColor(v)}">${v}</td>`:'<td style="text-align:center;color:var(--text3)">—</td>').join('')}<td style="text-align:center;font-weight:800;color:${scoreColor(overall)}">${overall}</td></tr>`;
   }).join('');
+  renderPerfilTable();
 }
 
 function renderGestorTeamUsers(){
@@ -1692,9 +1829,46 @@ function updScore(){
   const lEl=document.getElementById('f-loss-preview');if(lEl)lEl.textContent=loss;
   document.getElementById('crit-warn').style.display=hasCrit?'block':'none';
 }
+function updatePerfilStyle(){
+  Object.values(PERFIS).forEach(p=>{
+    const lbl=document.getElementById('lbl-perfil-'+p.id);
+    const inp=document.querySelector(`input[name="f-perfil"][value="${p.id}"]`);
+    if(lbl&&inp){
+      if(inp.checked){lbl.style.background='var(--ig-pale)';lbl.style.borderColor='var(--ig-green)';lbl.style.color='var(--ig-dark)';lbl.style.fontWeight='700';}
+      else{lbl.style.background='var(--bg)';lbl.style.borderColor='var(--border2)';lbl.style.color='var(--text)';lbl.style.fontWeight='400';}
+    }
+  });
+}
+function updateNivelStyle(){
+  Object.values(NIVEIS).forEach(n=>{
+    const lbl=document.getElementById('lbl-nivel-'+n.id);
+    const inp=document.querySelector(`input[name="f-nivel"][value="${n.id}"]`);
+    if(lbl&&inp){
+      if(inp.checked){lbl.style.background=n.bg;lbl.style.borderColor=n.border;lbl.style.color=n.color;lbl.style.fontWeight='700';}
+      else{lbl.style.background='var(--bg)';lbl.style.borderColor='var(--border2)';lbl.style.color='var(--text)';lbl.style.fontWeight='400';}
+    }
+  });
+}
 function openModal(){
   document.getElementById('f-proto').value='';document.getElementById('f-obs').value='';
-  if(document.getElementById('f-csat'))document.getElementById('f-csat').value='';
+  // Build perfil options
+  const perfilEl=document.getElementById('f-perfil-options');
+  if(perfilEl){
+    perfilEl.innerHTML=Object.values(PERFIS).map(p=>`
+      <label title="${p.desc.join(' • ')}" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;border:1px solid var(--border2);cursor:pointer;font-size:12px;background:var(--bg);transition:all .15s;user-select:none" id="lbl-perfil-${p.id}">
+        <input type="checkbox" name="f-perfil" value="${p.id}" style="display:none" onchange="updatePerfilStyle()">
+        <span>${p.icon}</span><span>${p.label}</span>
+      </label>`).join('');
+  }
+  // Build nivel options
+  const nivelEl=document.getElementById('f-nivel-options');
+  if(nivelEl){
+    nivelEl.innerHTML=Object.values(NIVEIS).map(n=>`
+      <label style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:1px solid var(--border2);cursor:pointer;font-size:12px;background:var(--bg);transition:all .15s;user-select:none" id="lbl-nivel-${n.id}">
+        <input type="radio" name="f-nivel" value="${n.id}" style="display:none" onchange="updateNivelStyle()">
+        <span>${n.label}</span>
+      </label>`).join('');
+  }
   document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
   buildModalDropdowns();buildModalChecks();updScore();
   document.getElementById('modal').style.display='flex';
@@ -1708,7 +1882,11 @@ function addEntry(){
   const date=document.getElementById('f-date').value;
   const month=document.getElementById('f-month').value;
   const obs=document.getElementById('f-obs').value;
-  const csatScore=parseInt(document.getElementById('f-csat')?.value)||null;
+  const csatScore=null;
+  const perfilSels=[...document.querySelectorAll('input[name="f-perfil"]:checked')].map(i=>i.value);
+  const nivelSel=document.querySelector('input[name="f-nivel"]:checked');
+  const perfil=perfilSels.length?perfilSels:null;
+  const nivel=nivelSel?.value||null;
   if(!proto||!agentId||!date||!month){alert('Preencha protocolo, operador, mês e data!');return;}
   const hasCrit=sc.criticalItems.some(it=>document.getElementById(it.id)?.checked);
   const failedQ=sc.items.filter(it=>document.getElementById(it.id)?.checked).map(it=>it.label);
@@ -1719,7 +1897,7 @@ function addEntry(){
   const agent=users.find(u=>u.id===agentId),mgr=users.find(u=>u.id===managerId);
   const tm=teams.find(t=>t.id===agent?.teamId);
   if(!records[month])records[month]=[];
-  records[month].push({id:'r'+Date.now()+'_'+Math.random().toString(36).slice(2),proto,agentId,agentName:agent?.name||'',managerId,managerName:mgr?.name||'',teamId:agent?.teamId||'',teamName:tm?.name||'',criteriaId:tm?.criteriaId||'global',maxScore:sc.maxScore,date,score,loss,csatScore,failedQ,failedC,hasCrit,obs});
+  records[month].push({id:'r'+Date.now()+'_'+Math.random().toString(36).slice(2),proto,agentId,agentName:agent?.name||'',managerId,managerName:mgr?.name||'',teamId:agent?.teamId||'',teamName:tm?.name||'',criteriaId:tm?.criteriaId||'global',maxScore:sc.maxScore,date,score,loss,csatScore,perfil,nivel,failedQ,failedC,hasCrit,obs});
   saveState();closeModal();refreshView();
 }
 
