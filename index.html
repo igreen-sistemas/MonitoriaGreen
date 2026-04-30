@@ -422,6 +422,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="nav-item" data-v="records" onclick="nav(this)"><span class="nav-icon">📋</span>Registros</div>
         <div class="sidebar-section">Configurações</div>
         <div class="nav-item" data-v="gestor-settings" onclick="nav(this)"><span class="nav-icon">🎯</span>Metas da Equipe</div>
+        <div class="nav-item" data-v="gestor-team-users" onclick="nav(this)"><span class="nav-icon">👥</span>Gerenciar Equipe</div>
       </div>
       <div id="nav-op" style="display:none">
         <div class="sidebar-section">Meu Desempenho</div>
@@ -553,6 +554,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         </div>
       </div>
 
+      <!-- GESTOR: GERENCIAR EQUIPE -->
+      <div class="view" id="view-gestor-team-users">
+        <div class="page-header"><div><div class="page-title">Gerenciar Equipe</div><div class="page-sub">Cadastre e gerencie os operadores da sua equipe</div></div></div>
+        <div class="card" style="max-width:680px">
+          <div class="card-title" style="margin-bottom:.9rem">👥 Operadores da Equipe</div>
+          <div id="gestor-agents-list"></div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">+ Adicionar Operador</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <input id="gestor-new-agent" placeholder="Nome do operador..." style="font-size:12px;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;">
+              <input id="gestor-new-agent-email" placeholder="E-mail do operador *" type="email" style="font-size:12px;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;">
+              <button onclick="gestorAddAgent()" style="background:var(--ig-green);color:#fff;border:none;border-radius:var(--r);padding:9px;font-size:13px;cursor:pointer;font-weight:700">+ Adicionar Operador</button>
+            </div>
+            <div style="font-size:11px;color:var(--text2);margin-top:6px">O operador será vinculado automaticamente à sua equipe.</div>
+          </div>
+        </div>
+      </div>
+
       <!-- OPERADOR: DASHBOARD -->
       <div class="view" id="view-op-dashboard">
         <div class="page-header"><div><div class="page-title" id="op-title">Meu Desempenho</div><div class="page-sub" id="op-sub"></div></div></div>
@@ -661,7 +680,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <div class="g2" style="align-items:start">
             <div class="card">
               <div class="card-title" style="margin-bottom:.9rem">👥 Usuários / Operadores</div>
-              <div class="tag-row" id="cfg-agents"></div>
+              <div id="cfg-agents"></div>
               <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:6px">
                 <input id="new-agent" placeholder="Nome do operador..." style="font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;width:100%">
                 <input id="new-agent-email" placeholder="E-mail do operador *" type="email" style="font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;width:100%">
@@ -671,7 +690,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             </div>
             <div class="card">
               <div class="card-title" style="margin-bottom:.9rem">🧑‍💼 Gestores</div>
-              <div class="tag-row" id="cfg-managers"></div>
+              <div id="cfg-managers"></div>
               <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:6px">
                 <input id="new-manager" placeholder="Nome do gestor..." style="font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;width:100%">
                 <input id="new-manager-email" placeholder="E-mail do gestor *" type="email" style="font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;width:100%">
@@ -681,7 +700,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           </div>
           <div class="card" style="margin-top:12px">
             <div class="card-title" style="margin-bottom:.9rem">👑 Administradores</div>
-            <div class="tag-row" id="cfg-admins"></div>
+            <div id="cfg-admins"></div>
             <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:6px">
               <input id="new-admin" placeholder="Nome do administrador..." style="font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;width:100%">
               <input id="new-admin-email" placeholder="E-mail do administrador *" type="email" style="font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;width:100%">
@@ -751,7 +770,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         </div>
         <div class="score-prev-val" id="score-prev" style="color:var(--green)">60</div>
       </div>
-      <div class="field"><label>Observações</label><input id="f-obs" placeholder="Comentários (opcional)"></div>
+      <div class="fr2">
+        <div class="field"><label>Média de Qualidade (%)</label><input type="number" id="f-csat" min="0" max="100" placeholder="ex: 85"></div>
+        <div class="field"><label>Observações</label><input id="f-obs" placeholder="Comentários (opcional)"></div>
+      </div>
     </div>
     <div class="mo-ft">
       <button class="btn btn-sec" onclick="closeModal()">Cancelar</button>
@@ -917,6 +939,7 @@ function renderView(id){
   else if(id==='gestor-operators')renderGestorOperators();
   else if(id==='gestor-compare')renderGestorCompare();
   else if(id==='gestor-settings')renderGestorSettings();
+  else if(id==='gestor-team-users')renderGestorTeamUsers();
   else if(id==='op-dashboard')renderOpDashboard();
   else if(id==='op-history')renderOpHistory();
   else if(id==='op-evolution')renderOpEvolution();
@@ -1139,7 +1162,13 @@ function renderOpDetailContent(uid,containerId){
   filteredRows.flatMap(r=>[...r.failedQ,...r.failedC]).forEach(f=>{failCount[f]=(failCount[f]||0)+1;});
   const topFails=Object.entries(failCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const el=document.getElementById(containerId);
-  el.innerHTML=`<div class="op-hero"><div class="av" style="width:56px;height:56px;background:${st.bg};color:${st.fg};font-size:18px;flex-shrink:0">${initials(u.name)}</div><div style="flex:1"><div style="font-size:18px;font-weight:800;color:#fff">${u.name}</div><div style="font-size:12px;color:rgba(255,255,255,.5)">${team?.name||''}</div><div style="margin-top:5px;display:flex;gap:6px"><span class="badge ${cls.c}">${cls.l}</span><span style="font-size:11px;color:rgba(255,255,255,.4);align-self:center">${monthLabel}</span></div></div><div style="text-align:right;flex-shrink:0"><div style="font-size:34px;font-weight:800;color:${dispTotal>0?scoreColor(dispAvg):scoreColor(overallAvg)}">${dispTotal>0?dispAvg:overallAvg}</div><div style="font-size:11px;color:rgba(255,255,255,.4)">${dispTotal>0?monthLabel+' · 60 pts':'média geral'}</div><div style="font-size:13px;font-weight:700;color:var(--red);margin-top:3px">−${dispTotalLoss} pts perdidos</div></div></div><div class="kpi-grid" style="margin-bottom:1.1rem"><div class="kpi" style="--kpi-color:var(--blue)"><div class="kpi-label">Monitorias</div><div class="kpi-val">${dispTotal}</div><div class="kpi-sub">${monthLabel}</div></div><div class="kpi" style="--kpi-color:var(--red)"><div class="kpi-label">Perda média/mon.</div><div class="kpi-val c-red">−${dispLoss}</div><div class="kpi-sub">pts perdidos</div></div><div class="kpi" style="--kpi-color:var(--amber)"><div class="kpi-label">Média de Qualidade</div><div class="kpi-val" style="color:${dispCsat>=goal.csatGoal?'var(--green)':'var(--amber)'}">${dispCsat}%</div><div class="kpi-sub">Meta: ${goal.csatGoal}%</div></div><div class="kpi" style="--kpi-color:var(--red)"><div class="kpi-label">Zeradas</div><div class="kpi-val c-red">${dispZeros}</div><div class="kpi-sub">${monthLabel}</div></div></div><div class="card" style="margin-bottom:12px"><div class="card-hd"><span class="card-title">Evolução Mensal</span></div><div class="month-cmp">${months.map((m,i)=>{const v=avgs[i],l=losses[i],prev=i>0?avgs[i-1]:null,delta2=v!==null&&prev!==null?v-prev:null,isCur=m===currentMonth&&!isAll;return`<div class="mc ${isCur?'curr':''}">${isCur?'<div class="mc-tag">atual</div>':''}<div style="font-size:10px;color:var(--text2)">${m}</div><div style="font-size:20px;font-weight:800;color:${v!==null?scoreColor(v):'var(--text3)'}">${v!==null?v:'—'}</div>${l!==null?`<div style="font-size:11px;font-weight:700;color:var(--red)">−${l}</div>`:''}${delta2!==null?`<div style="font-size:11px;font-weight:700;color:${delta2>0?'#34C759':delta2<0?'#FF3B30':'#6e6e73'}">${delta2>0?'↑ +':'↓ '}${delta2}</div>`:''}</div>`;}).join('')}</div><div style="position:relative;height:180px"><canvas id="chart-op-det-${uid}"></canvas></div></div><div class="card" style="margin-bottom:12px"><div class="card-hd"><span class="card-title">Últimas Monitorias</span></div><div class="tw"><table class="tbl"><thead><tr><th>Data</th><th>Protocolo</th><th style="text-align:center">Pontuação</th><th style="text-align:center">Pts Perdidos</th><th style="text-align:center">Status</th><th>Observação</th></tr></thead><tbody>${[...filteredRows].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12).map(r=>{const cls2=classify(r.score,r.maxScore);return`<tr><td style="font-size:11px;color:var(--text2);white-space:nowrap">${r.date?r.date.slice(8)+'/'+r.date.slice(5,7):'—'}</td><td style="font-family:monospace;font-size:12px;font-weight:600">${r.proto||'—'}</td><td style="text-align:center;font-weight:800;font-size:14px;color:${scoreColor(r.score,r.maxScore)}">${r.score}<span style="font-size:10px;font-weight:400;color:var(--text3)">/${r.maxScore||60}</span></td><td style="text-align:center;font-weight:800;color:var(--red)">−${r.loss}</td><td style="text-align:center"><span class="badge ${cls2.c}">${cls2.l}</span></td><td style="font-size:11px;color:var(--text2);max-width:200px;line-height:1.4">${r.obs&&r.obs.trim()?r.obs:'<span style="color:var(--text3)">—</span>'}</td></tr>`;}).join('')}</tbody></table></div></div><div class="card"><div class="card-hd"><span class="card-title">Pendências Frequentes</span></div>${topFails.length?topFails.map(([l2,cnt])=>`<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:var(--r);background:var(--bg2);margin-bottom:6px"><span style="font-size:16px;font-weight:800;color:var(--red);width:28px;text-align:center">${cnt}x</span><span style="font-size:12px;line-height:1.45">${l2}</span></div>`).join(''):'<p style="color:var(--text2);font-size:13px">Nenhuma pendência ✓</p>'}</div>`;
+  el.innerHTML=`<div class="op-hero"><div class="av" style="width:56px;height:56px;background:${st.bg};color:${st.fg};font-size:18px;flex-shrink:0">${initials(u.name)}</div><div style="flex:1"><div style="font-size:18px;font-weight:800;color:#fff">${u.name}</div><div style="font-size:12px;color:rgba(255,255,255,.5)">${team?.name||''}</div><div style="margin-top:5px;display:flex;gap:6px"><span class="badge ${cls.c}">${cls.l}</span><span style="font-size:11px;color:rgba(255,255,255,.4);align-self:center">${monthLabel}</span></div></div><div style="text-align:right;flex-shrink:0"><div style="font-size:34px;font-weight:800;color:${dispTotal>0?scoreColor(dispAvg):scoreColor(overallAvg)}">${dispTotal>0?dispAvg:overallAvg}</div><div style="font-size:11px;color:rgba(255,255,255,.4)">${dispTotal>0?monthLabel+' · 60 pts':'média geral'}</div><div style="font-size:13px;font-weight:700;color:var(--red);margin-top:3px">−${dispTotalLoss} pts perdidos</div></div></div><div class="kpi-grid" style="margin-bottom:1.1rem"><div class="kpi" style="--kpi-color:var(--blue)"><div class="kpi-label">Monitorias</div><div class="kpi-val">${dispTotal}</div><div class="kpi-sub">${monthLabel}</div></div><div class="kpi" style="--kpi-color:var(--red)"><div class="kpi-label">Perda média/mon.</div><div class="kpi-val c-red">−${dispLoss}</div><div class="kpi-sub">pts perdidos</div></div><div class="kpi" style="--kpi-color:var(--amber)"><div class="kpi-label">Média de Qualidade</div><div class="kpi-val" style="color:${dispCsat>=goal.csatGoal?'var(--green)':'var(--amber)'}">${dispCsat}%</div><div class="kpi-sub">Meta: ${goal.csatGoal}%</div></div><div class="kpi" style="--kpi-color:var(--red)"><div class="kpi-label">Zeradas</div><div class="kpi-val c-red">${dispZeros}</div><div class="kpi-sub">${monthLabel}</div></div></div><div class="card" style="margin-bottom:12px"><div class="card-hd"><span class="card-title">Evolução Mensal</span></div><div class="month-cmp">${months.map((m,i)=>{const v=avgs[i],l=losses[i],prev=i>0?avgs[i-1]:null,delta2=v!==null&&prev!==null?v-prev:null,isCur=m===currentMonth&&!isAll;return`<div class="mc ${isCur?'curr':''}">${isCur?'<div class="mc-tag">atual</div>':''}<div style="font-size:10px;color:var(--text2)">${m}</div><div style="font-size:20px;font-weight:800;color:${v!==null?scoreColor(v):'var(--text3)'}">${v!==null?v:'—'}</div>${l!==null?`<div style="font-size:11px;font-weight:700;color:var(--red)">−${l}</div>`:''}${delta2!==null?`<div style="font-size:11px;font-weight:700;color:${delta2>0?'#34C759':delta2<0?'#FF3B30':'#6e6e73'}">${delta2>0?'↑ +':'↓ '}${delta2}</div>`:''}</div>`;}).join('')}</div><div style="position:relative;height:180px"><canvas id="chart-op-det-${uid}"></canvas></div></div><div class="card" style="margin-bottom:12px"><div class="card-hd"><span class="card-title">Últimas Monitorias</span></div><div class="tw"><table class="tbl"><thead><tr><th>Data</th><th>Protocolo</th><th style="text-align:center">Pontuação</th><th style="text-align:center">Pts Perdidos</th><th style="text-align:center">Status</th><th>Observação</th></tr></thead><tbody>${[...filteredRows].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12).map(r=>{const cls2=classify(r.score,r.maxScore);return`<tr><td style="font-size:11px;color:var(--text2);white-space:nowrap">${r.date?r.date.slice(8)+'/'+r.date.slice(5,7):'—'}</td><td style="font-family:monospace;font-size:12px;font-weight:600">${r.proto||'—'}</td><td style="text-align:center;font-weight:800;font-size:14px;color:${scoreColor(r.score,r.maxScore)}">${r.score}<span style="font-size:10px;font-weight:400;color:var(--text3)">/${r.maxScore||60}</span></td><td style="text-align:center;font-weight:800;color:var(--red)">−${r.loss}</td><td style="text-align:center"><span class="badge ${cls2.c}">${cls2.l}</span></td><td style="font-size:11px;color:var(--text2);max-width:200px;line-height:1.4">${r.obs&&r.obs.trim()?r.obs:'<span style="color:var(--text3)">—</span>'}</td></tr>`;}).join('')}</tbody></table>
+<div style="display:flex;gap:16px;justify-content:flex-end;padding:10px 4px 2px;border-top:2px solid var(--border);margin-top:4px">
+  <div style="font-size:12px;color:var(--text2)">Total de monitorias: <strong style="color:var(--text)">${filteredRows.length}</strong></div>
+  <div style="font-size:12px;color:var(--text2)">Pontuação total: <strong style="color:${scoreColor(filteredRows.reduce((s,r)=>s+r.score,0)/Math.max(filteredRows.length,1),filteredRows[0]?.maxScore||60)}">${filteredRows.reduce((s,r)=>s+r.score,0)}</strong></div>
+  <div style="font-size:12px;color:var(--text2)">Pts perdidos total: <strong style="color:var(--red)">−${filteredRows.reduce((s,r)=>s+(r.loss||0),0)}</strong></div>
+</div>
+</div></div><div class="card"><div class="card-hd"><span class="card-title">Pendências Frequentes</span></div>${topFails.length?topFails.map(([l2,cnt])=>`<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:var(--r);background:var(--bg2);margin-bottom:6px"><span style="font-size:16px;font-weight:800;color:var(--red);width:28px;text-align:center">${cnt}x</span><span style="font-size:12px;line-height:1.45">${l2}</span></div>`).join(''):'<p style="color:var(--text2);font-size:13px">Nenhuma pendência ✓</p>'}</div>`;
   setTimeout(()=>{mkChart(`chart-op-det-${uid}`,{type:'line',data:{labels:months,datasets:[{label:'Pontuação',data:avgs,borderColor:'#00cc44',backgroundColor:'#00cc4412',pointRadius:5,tension:.3,fill:true,borderWidth:2.5,spanGaps:true},{label:'Pts perdidos',data:losses.map(v=>v!==null?-v:null),borderColor:'#FF3B30',backgroundColor:'#FF3B3010',pointRadius:4,tension:.3,fill:false,borderWidth:1.5,borderDash:[4,3],spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{ticks:{font:{size:10}},grid:{color:'#e0e0e522'}}}}});},50);
 }
 
@@ -1159,6 +1188,31 @@ function renderGestorCompare(){
     const overall=valid.length?Math.round(valid.reduce((a,b)=>a+b,0)/valid.length):0;
     return`<tr><td style="font-weight:600;font-size:13px">${u.name}</td>${avgs.map(v=>v!==null?`<td style="text-align:center;font-weight:700;color:${scoreColor(v)}">${v}</td>`:'<td style="text-align:center;color:var(--text3)">—</td>').join('')}<td style="text-align:center;font-weight:800;color:${scoreColor(overall)}">${overall}</td></tr>`;
   }).join('');
+}
+
+function renderGestorTeamUsers(){
+  const team=teams.find(t=>t.id===currentUser.teamId);
+  const ops=users.filter(u=>u.role==='operador'&&u.teamId===currentUser.teamId);
+  const listEl=document.getElementById('gestor-agents-list');
+  if(!listEl)return;
+  function renderRow(u){return`<tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 10px;font-size:13px;font-weight:600">${u.name}</td><td style="padding:7px 10px;font-size:11px;color:var(--text2)">${u.email||'<span style="color:var(--red)">sem e-mail</span>'}</td><td style="padding:7px 10px"><span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;${u.passwordSet===false?'background:rgba(255,179,0,.15);color:#FF9500':'background:rgba(0,204,68,.12);color:#00993a'}">${u.passwordSet===false?'⏳ Pendente':'✓ Ativo'}</span></td><td style="padding:7px 10px;white-space:nowrap"><button onclick="gestorResendInvite('${u.id}')" style="font-size:11px;color:var(--ig-green);background:none;border:none;cursor:pointer;margin-right:8px">✏️ Senha</button></td></tr>`;}
+  listEl.innerHTML=ops.length?`<table style="width:100%;border-collapse:collapse;margin-bottom:4px"><thead><tr style="background:var(--bg2)"><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase">Nome</th><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase">E-mail</th><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase">Status</th><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase">Ações</th></tr></thead><tbody>${ops.map(renderRow).join('')}</tbody></table>`:'<p style="font-size:12px;color:var(--text2);margin-bottom:8px">Nenhum operador na equipe ainda.</p>';
+}
+
+async function gestorAddAgent(){
+  const n=document.getElementById('gestor-new-agent')?.value.trim();
+  const email=document.getElementById('gestor-new-agent-email')?.value.trim();
+  if(!n){alert('Informe o nome do operador.');return;}
+  if(!email||!email.includes('@')){alert('Informe um e-mail válido.');return;}
+  if(users.find(u=>u.email&&u.email.toLowerCase()===email.toLowerCase())){alert('E-mail já cadastrado.');return;}
+  document.getElementById('gestor-new-agent').value='';
+  document.getElementById('gestor-new-agent-email').value='';
+  const teamId=currentUser.teamId;
+  cfgOpenSetPassword({id:'op'+Date.now(),name:n,role:'operador',teamId,password:'',email,passwordSet:false});
+}
+
+function gestorResendInvite(userId){
+  resendInvite(userId);
 }
 
 function renderGestorSettings(){
@@ -1337,10 +1391,11 @@ function renderAdminSettings(){
   document.getElementById('cfg-locked').style.display='none';document.getElementById('cfg-unlocked').style.display='block';
   renderCfgTeams();
   const ops=users.filter(u=>u.role==='operador'),mgrs=users.filter(u=>u.role==='gestor'),admins=users.filter(u=>u.role==='admin');
-  function renderUserTag(u){return`<div class="user-tag ${u.passwordSet===false?'pending':'active'}"><div class="user-tag-name">${u.name}<span class="user-tag-status ${u.passwordSet===false?'uts-pending':'uts-active'}">${u.passwordSet===false?'⏳ Pendente':'✓ Ativo'}</span><button class="tag-del uta-btn remove" onclick="cfgRemUser('${u.id}')" title="Remover">✕</button></div><div class="user-tag-email">${u.email||'<span style="color:var(--red)">sem e-mail</span>'}</div><div class="user-tag-actions"><button class="uta-btn resend" onclick="resendInvite('${u.id}')">✏️ Senha</button></div></div>`;}
-  document.getElementById('cfg-admins').innerHTML=admins.map(renderUserTag).join('');
-  document.getElementById('cfg-agents').innerHTML=ops.map(renderUserTag).join('');
-  document.getElementById('cfg-managers').innerHTML=mgrs.map(renderUserTag).join('');
+  function renderUserTag(u){return`<tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 10px;font-size:13px;font-weight:600">${u.name}</td><td style="padding:7px 10px;font-size:11px;color:var(--text2)">${u.email||'<span style="color:var(--red)">sem e-mail</span>'}</td><td style="padding:7px 10px"><span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;${u.passwordSet===false?'background:rgba(255,179,0,.15);color:#FF9500':'background:rgba(0,204,68,.12);color:#00993a'}">${u.passwordSet===false?'⏳ Pendente':'✓ Ativo'}</span></td><td style="padding:7px 10px;white-space:nowrap"><button class="uta-btn resend" onclick="resendInvite('${u.id}')" style="font-size:11px;color:var(--ig-green);margin-right:8px">✏️ Senha</button><button class="tag-del uta-btn remove" onclick="cfgRemUser('${u.id}')" style="font-size:11px;color:var(--text3)" title="Remover">✕ Remover</button></td></tr>`;}
+  const tableWrap=(rows,empty)=>rows.length?`<table style="width:100%;border-collapse:collapse;margin-bottom:8px"><thead><tr style="background:var(--bg2)"><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Nome</th><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase;letter-spacing:.04em">E-mail</th><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Status</th><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Ações</th></tr></thead><tbody>${rows.map(renderUserTag).join('')}</tbody></table>`:`<p style="font-size:12px;color:var(--text2);margin-bottom:8px">${empty}</p>`;
+  document.getElementById('cfg-admins').innerHTML=tableWrap(admins,'Nenhum administrador cadastrado.');
+  document.getElementById('cfg-agents').innerHTML=tableWrap(ops,'Nenhum operador cadastrado.');
+  document.getElementById('cfg-managers').innerHTML=tableWrap(mgrs,'Nenhum gestor cadastrado.');
   document.getElementById('cfg-months').innerHTML=months.map(m=>`<span class="tag">${m}<button class="tag-del" onclick="cfgRemMonth('${m}')">✕</button></span>`).join('');
   renderCfgAssign();cfgPopulateCriteriaTeamSel();cfgLoadTeamCriteria();
 }
@@ -1639,6 +1694,7 @@ function updScore(){
 }
 function openModal(){
   document.getElementById('f-proto').value='';document.getElementById('f-obs').value='';
+  if(document.getElementById('f-csat'))document.getElementById('f-csat').value='';
   document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
   buildModalDropdowns();buildModalChecks();updScore();
   document.getElementById('modal').style.display='flex';
@@ -1652,6 +1708,7 @@ function addEntry(){
   const date=document.getElementById('f-date').value;
   const month=document.getElementById('f-month').value;
   const obs=document.getElementById('f-obs').value;
+  const csatScore=parseInt(document.getElementById('f-csat')?.value)||null;
   if(!proto||!agentId||!date||!month){alert('Preencha protocolo, operador, mês e data!');return;}
   const hasCrit=sc.criticalItems.some(it=>document.getElementById(it.id)?.checked);
   const failedQ=sc.items.filter(it=>document.getElementById(it.id)?.checked).map(it=>it.label);
@@ -1662,7 +1719,7 @@ function addEntry(){
   const agent=users.find(u=>u.id===agentId),mgr=users.find(u=>u.id===managerId);
   const tm=teams.find(t=>t.id===agent?.teamId);
   if(!records[month])records[month]=[];
-  records[month].push({id:'r'+Date.now()+'_'+Math.random().toString(36).slice(2),proto,agentId,agentName:agent?.name||'',managerId,managerName:mgr?.name||'',teamId:agent?.teamId||'',teamName:tm?.name||'',criteriaId:tm?.criteriaId||'global',maxScore:sc.maxScore,date,score,loss,csatScore:null,failedQ,failedC,hasCrit,obs});
+  records[month].push({id:'r'+Date.now()+'_'+Math.random().toString(36).slice(2),proto,agentId,agentName:agent?.name||'',managerId,managerName:mgr?.name||'',teamId:agent?.teamId||'',teamName:tm?.name||'',criteriaId:tm?.criteriaId||'global',maxScore:sc.maxScore,date,score,loss,csatScore,failedQ,failedC,hasCrit,obs});
   saveState();closeModal();refreshView();
 }
 
