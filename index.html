@@ -1116,11 +1116,26 @@ function getMonthData(month){
   if(month==='__ALL__')return months.flatMap(m=>records[m]||[]);
   return records[month]||[];
 }
+function getAgentCurrentTeamId(agentId){
+  const u=users.find(x=>x.id===agentId);
+  return u?.teamId||null;
+}
 function filtered(month){
   let d=getMonthData(month);
-  if(currentUser.role==='gestor')d=d.filter(r=>r.teamId===currentUser.teamId);
-  else if(currentUser.role==='gestor_senior')d=d.filter(r=>getSeniorTeams().some(t=>t.id===r.teamId));
-  else if(selectedTeams&&selectedTeams.size>0)d=d.filter(r=>selectedTeams.has(r.teamId));
+  if(currentUser.role==='gestor'){
+    // Use current teamId of the agent (reflects transfers)
+    const myOps=users.filter(u=>u.role==='operador'&&u.teamId===currentUser.teamId).map(u=>u.id);
+    d=d.filter(r=>myOps.includes(r.agentId));
+  }
+  else if(currentUser.role==='gestor_senior'){
+    const myTeamIds=getSeniorTeams().map(t=>t.id);
+    const myOps=users.filter(u=>u.role==='operador'&&myTeamIds.includes(u.teamId)).map(u=>u.id);
+    d=d.filter(r=>myOps.includes(r.agentId));
+  }
+  else if(selectedTeams&&selectedTeams.size>0){
+    const myOps=users.filter(u=>u.role==='operador'&&selectedTeams.has(u.teamId)).map(u=>u.id);
+    d=d.filter(r=>myOps.includes(r.agentId));
+  }
   return d;
 }
 function opData(month,agentId){
@@ -1262,8 +1277,9 @@ function getSeniorGestoras(){
 }
 function getSeniorData(month){
   const tIds=getSeniorTeams().map(t=>t.id);
+  const myOps=users.filter(u=>u.role==='operador'&&tIds.includes(u.teamId)).map(u=>u.id);
   const d=getMonthData(month);
-  return d.filter(r=>tIds.includes(r.teamId));
+  return d.filter(r=>myOps.includes(r.agentId));
 }
 
 function renderSeniorOverview(){
@@ -1894,6 +1910,7 @@ function cfgAssign(managerId,teamId){
   const u=users.find(x=>x.id===sel.value);if(!u)return;
   if(!teamId){const tm=teams.find(t=>t.managerId===managerId);if(!tm)return;teamId=tm.id;}
   u.teamId=teamId;saveState();renderCfgAssign();
+  showInviteToast(`<strong>${u.name}</strong> transferido(a). Painéis atualizados.`);
 }
 function cfgUnassign(uid){const u=users.find(x=>x.id===uid);if(!u)return;u.teamId=null;saveState();renderCfgAssign();}
 
