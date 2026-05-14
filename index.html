@@ -103,6 +103,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .role-admin{background:rgba(255,149,0,.2);color:#FF9500;}
 .role-gestor{background:rgba(0,122,255,.2);color:#007AFF;}
 .role-op{background:rgba(52,199,89,.2);color:#34C759;}
+.role-senior{background:rgba(175,82,222,.2);color:#AF52DE;}
 .btn-green{background:var(--ig-green);color:#fff;border:none;border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:700;transition:opacity .15s;white-space:nowrap;}
 .btn-green:hover{opacity:.85;}
 
@@ -431,6 +432,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="nav-item" data-v="gestor-settings" onclick="nav(this)"><span class="nav-icon">🎯</span>Metas da Equipe</div>
         <div class="nav-item" data-v="gestor-team-users" onclick="nav(this)"><span class="nav-icon">👥</span>Gerenciar Equipe</div>
       </div>
+      <div id="nav-senior" style="display:none">
+        <div class="sidebar-section">Visão Geral</div>
+        <div class="nav-item active" data-v="senior-overview" onclick="nav(this)"><span class="nav-icon">📊</span>Painel Sênior</div>
+        <div class="nav-item" data-v="senior-teams" onclick="nav(this)"><span class="nav-icon">🏢</span>Equipes</div>
+        <div class="nav-item" data-v="senior-ranking" onclick="nav(this)"><span class="nav-icon">🏆</span>Ranking</div>
+        <div class="sidebar-section">Dados</div>
+        <div class="nav-item" data-v="records" onclick="nav(this)"><span class="nav-icon">📋</span>Registros</div>
+      </div>
       <div id="nav-op" style="display:none">
         <div class="sidebar-section">Meu Desempenho</div>
         <div class="nav-item active" data-v="op-dashboard" onclick="nav(this)"><span class="nav-icon">📊</span>Meu Dashboard</div>
@@ -636,6 +645,50 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="g3" id="op-evo-months"></div>
       </div>
 
+      <!-- SENIOR: PAINEL -->
+      <div class="view" id="view-senior-overview">
+        <div class="page-header">
+          <div><div class="page-title">Painel Sênior</div><div class="page-sub" id="senior-ov-sub"></div></div>
+        </div>
+        <div class="kpi-grid kpi-grid-5">
+          <div class="kpi" style="--kpi-color:var(--blue)"><div class="kpi-label">Monitorias</div><div class="kpi-val" id="senior-total">—</div><div class="kpi-sub" id="senior-total-s"></div></div>
+          <div class="kpi" style="--kpi-color:var(--green)"><div class="kpi-label">Pontuação Média</div><div class="kpi-val" id="senior-avg">—</div><div class="kpi-sub" id="senior-avg-s"></div></div>
+          <div class="kpi" style="--kpi-color:var(--red)"><div class="kpi-label">Total Pts Perdidos</div><div class="kpi-val c-red" id="senior-loss">—</div><div class="kpi-sub" id="senior-loss-s"></div></div>
+          <div class="kpi" style="--kpi-color:var(--amber)"><div class="kpi-label">Média de Qualidade</div><div class="kpi-val" id="senior-csat">—</div><div class="kpi-sub" id="senior-csat-s"></div></div>
+          <div class="kpi" style="--kpi-color:var(--purple)"><div class="kpi-label">Gestoras</div><div class="kpi-val" id="senior-gestores">—</div><div class="kpi-sub" id="senior-gestores-s"></div></div>
+        </div>
+        <div class="g2">
+          <div class="card"><div class="card-hd"><span class="card-title">Pontuação Média por Equipe</span></div><div style="position:relative;height:210px"><canvas id="chart-senior-teams"></canvas></div></div>
+          <div class="card"><div class="card-hd"><span class="card-title">Evolução Mensal</span></div><div style="position:relative;height:210px"><canvas id="chart-senior-trend"></canvas></div></div>
+        </div>
+        <div class="g2">
+          <div class="card"><div class="card-title" style="margin-bottom:1rem">Distribuição de Resultados</div><div class="dist-grid" id="senior-dist"></div></div>
+          <div class="card"><div class="card-title" style="margin-bottom:1rem">Top 5 Operadores do Mês</div><div id="senior-top5"></div></div>
+        </div>
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-title" style="margin-bottom:.9rem">🧑‍💼 Minhas Gestoras</div>
+          <div id="senior-gestoras-cards" style="display:flex;flex-wrap:wrap;gap:10px"></div>
+        </div>
+      </div>
+
+      <!-- SENIOR: EQUIPES -->
+      <div class="view" id="view-senior-teams">
+        <div class="page-header"><div><div class="page-title">Equipes das Gestoras</div></div></div>
+        <div id="senior-teams-grid" class="g2"></div>
+      </div>
+
+      <!-- SENIOR: RANKING -->
+      <div class="view" id="view-senior-ranking">
+        <div class="page-header"><div><div class="page-title">Ranking de Operadores</div></div></div>
+        <div class="card">
+          <input class="sb" id="senior-rank-search" placeholder="🔍 Buscar operador..." oninput="renderSeniorRanking()" style="margin-bottom:12px">
+          <div class="tw"><table class="tbl">
+            <thead><tr><th>#</th><th>Operador</th><th>Equipe</th><th>Gestora</th><th style="text-align:center">Mon.</th><th style="text-align:center">Pontuação</th><th>Barra</th><th style="text-align:center">Qualidade</th><th style="text-align:center">Status</th></tr></thead>
+            <tbody id="senior-rank-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
       <!-- RECORDS -->
       <div class="view" id="view-records">
         <div class="page-header">
@@ -723,6 +776,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
               <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:6px">
                 <input id="new-manager" placeholder="Nome do gestor..." style="font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;width:100%">
                 <input id="new-manager-email" placeholder="E-mail do gestor *" type="email" style="font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;width:100%">
+                <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;padding:4px 0">
+                  <input type="checkbox" id="new-manager-is-senior" style="accent-color:#AF52DE;width:14px;height:14px">
+                  <span>🌟 Cadastrar como <strong style="color:#AF52DE">Gestor Sênior</strong> (sem equipe própria)</span>
+                </label>
                 <button onclick="cfgAddManager()" style="background:var(--ig-green);color:#fff;border:none;border-radius:var(--r);padding:6px 13px;font-size:12px;cursor:pointer;font-weight:700">+ Adicionar</button>
               </div>
             </div>
@@ -735,6 +792,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
               <input id="new-admin-email" placeholder="E-mail do administrador *" type="email" style="font-size:12px;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;width:100%">
               <button onclick="cfgAddAdmin()" style="background:var(--amber);color:#fff;border:none;border-radius:var(--r);padding:6px 13px;font-size:12px;cursor:pointer;font-weight:700">+ Adicionar Admin</button>
             </div>
+          </div>
+          <div class="card" style="margin-top:12px">
+            <div class="card-title" style="margin-bottom:.9rem">Vincular Gestoras ao Gestor Sênior</div>
+            <div id="cfg-assign-senior"></div>
           </div>
           <div class="card" style="margin-top:12px">
             <div class="card-title" style="margin-bottom:.9rem">Vincular Operadores às Equipes</div>
@@ -935,6 +996,7 @@ function login(u){
   buildHeader();buildMonthPicker();buildNav();
   if(u.role==='admin')navTo('admin-overview');
   else if(u.role==='gestor')navTo('gestor-overview');
+  else if(u.role==='gestor_senior')navTo('senior-overview');
   else navTo('op-dashboard');
 }
 function doLogout(){
@@ -954,16 +1016,16 @@ function buildHeader(){
   av.style.background=st.bg;av.style.color=st.fg;av.textContent=initials(u.name);
   document.getElementById('hdr-name').textContent=u.name.split(' ')[0];
   const roleEl=document.getElementById('hdr-role');
-  roleEl.textContent=u.role==='admin'?'Admin':u.role==='gestor'?'Gestor':'Operador';
-  roleEl.className='user-chip-role role-'+(u.role==='operador'?'op':u.role);
-  document.getElementById('btn-new-mon').style.display=u.role!=='operador'?'block':'none';
+  roleEl.textContent=u.role==='admin'?'Admin':u.role==='gestor_senior'?'Sênior':u.role==='gestor'?'Gestor':'Operador';
+  roleEl.className='user-chip-role role-'+(u.role==='operador'?'op':u.role==='gestor_senior'?'senior':u.role);
+  document.getElementById('btn-new-mon').style.display=(u.role==='admin'||u.role==='gestor'||u.role==='gestor_senior')?'block':'none';
   const tw=document.getElementById('filter-team-wrap');
   if(u.role==='admin'){
     tw.style.display='block';
     renderTeamFilterOptions();
   }else if(tw) tw.style.display='none';
   const team=teams.find(t=>t.id===u.teamId);
-  document.getElementById('sb-user-info').innerHTML=`<span style="font-size:12px;font-weight:600;color:var(--text)">${u.name}</span><br><span style="font-size:11px;color:var(--text2)">${u.role==='admin'?'Administrador':u.role==='gestor'?'Gestor · '+(team?.name||''):'Operador · '+(team?.name||'')}</span>`;
+  document.getElementById('sb-user-info').innerHTML=`<span style="font-size:12px;font-weight:600;color:var(--text)">${u.name}</span><br><span style="font-size:11px;color:var(--text2)">${u.role==='admin'?'Administrador':u.role==='gestor_senior'?'Gestor Sênior':u.role==='gestor'?'Gestor · '+(team?.name||''):'Operador · '+(team?.name||'')}</span>`;
 }
 function buildMonthPicker(){
   const sel=document.getElementById('global-month');
@@ -973,6 +1035,7 @@ function buildNav(){
   const r=currentUser.role;
   document.getElementById('nav-admin').style.display=r==='admin'?'block':'none';
   document.getElementById('nav-gestor').style.display=r==='gestor'?'block':'none';
+  document.getElementById('nav-senior').style.display=r==='gestor_senior'?'block':'none';
   document.getElementById('nav-op').style.display=r==='operador'?'block':'none';
 }
 function onMonthChange(){currentMonth=document.getElementById('global-month').value;refreshView();}
@@ -1040,6 +1103,9 @@ function renderView(id){
   else if(id==='gestor-compare')renderGestorCompare();
   else if(id==='gestor-settings')renderGestorSettings();
   else if(id==='gestor-team-users')renderGestorTeamUsers();
+  else if(id==='senior-overview')renderSeniorOverview();
+  else if(id==='senior-teams')renderSeniorTeams();
+  else if(id==='senior-ranking')renderSeniorRanking();
   else if(id==='op-dashboard')renderOpDashboard();
   else if(id==='op-history')renderOpHistory();
   else if(id==='op-evolution')renderOpEvolution();
@@ -1053,6 +1119,7 @@ function getMonthData(month){
 function filtered(month){
   let d=getMonthData(month);
   if(currentUser.role==='gestor')d=d.filter(r=>r.teamId===currentUser.teamId);
+  else if(currentUser.role==='gestor_senior')d=d.filter(r=>getSeniorTeams().some(t=>t.id===r.teamId));
   else if(selectedTeams&&selectedTeams.size>0)d=d.filter(r=>selectedTeams.has(r.teamId));
   return d;
 }
@@ -1114,17 +1181,21 @@ function renderAdminOverview(){
   kpi('ov-totloss',totalLoss,'c-red','média −'+avgLoss+' por mon.');
   kpi('ov-csat',csatAvg+'%',csatAvg>=80?'c-green':'c-amber','Média de Qualidade');
   kpi('ov-teams',activeTeams,'','equipes com monitorias');
-  const tStats=teams.map(t=>{const td=data.filter(r=>r.teamId===t.id);return{name:t.name,avg:td.length?avgOf(td,'score'):0};});
-  mkChart('chart-ov-teams',{type:'bar',data:{labels:tStats.map(t=>t.name),datasets:[{data:tStats.map(t=>t.avg),backgroundColor:tStats.map(t=>scoreColor(t.avg)+'99'),borderColor:tStats.map(t=>scoreColor(t.avg)),borderWidth:1.5,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{min:0,max:60,ticks:{font:{size:10}},grid:{color:'#e0e0e522'}}}}});
+  // Only show teams that exist AND have data in current period
+  const tStats=teams.filter(t=>data.some(r=>r.teamId===t.id)).map(t=>{const td=data.filter(r=>r.teamId===t.id);return{name:t.name,avg:td.length?avgOf(td,'score'):0,maxScore:td[0]?.maxScore||60};});
+  const chartMax=tStats.length?Math.max(...tStats.map(t=>t.maxScore),60):60;
+  mkChart('chart-ov-teams',{type:'bar',data:{labels:tStats.map(t=>t.name),datasets:[{data:tStats.map(t=>t.avg),backgroundColor:tStats.map(t=>scoreColor(t.avg,t.maxScore)+'99'),borderColor:tStats.map(t=>scoreColor(t.avg,t.maxScore)),borderWidth:1.5,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{min:0,max:chartMax,ticks:{font:{size:10}},grid:{color:'#e0e0e522'}}}}});
   const trendData=months.map(m=>{const d2=filtered(m);return d2.length?avgOf(d2,'score'):null;});
   mkChart('chart-ov-trend',{type:'line',data:{labels:months,datasets:[{data:trendData,borderColor:'#34C759',backgroundColor:'#34C75912',pointRadius:5,tension:0.3,fill:true,borderWidth:2.5,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{min:0,max:60,ticks:{font:{size:10}},grid:{color:'#e0e0e522'}}}}});
   renderDist('ov-dist',data,total);
-  const ops=users.filter(u=>u.role==='operador');
+  // Filter ops by selected teams
+  const filteredTeamIds=selectedTeams&&selectedTeams.size>0?[...selectedTeams]:teams.map(t=>t.id);
+  const ops=users.filter(u=>u.role==='operador'&&filteredTeamIds.includes(u.teamId));
   const opStats=ops.map(u=>{const s=agentStats(currentMonth,u.id);return s?{...s,user:u}:null;}).filter(Boolean).sort((a,b)=>b.avg-a.avg).slice(0,5);
   document.getElementById('ov-top5').innerHTML=opStats.length?opStats.map((s,i)=>{
     const st=avStyle(s.user.name),cls=classify(s.avg,s.maxScore);
     return`<div class="team-rank-item"><div class="trk-rank" style="color:${i<3?'#FF9500':'var(--text2)'}">${['🥇','🥈','🥉'][i]||i+1}</div><div class="av" style="width:30px;height:30px;background:${st.bg};color:${st.fg};font-size:11px">${initials(s.user.name)}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${s.user.name}</div><div style="font-size:11px;color:var(--text2)">${teams.find(t=>t.id===s.user.teamId)?.name||''}</div></div><span class="badge ${cls.c}">${s.avg} pts</span></div>`;
-  }).join(''):'<p style="color:var(--text2);font-size:13px">Sem dados</p>';
+  }).join(''):'<p style="color:var(--text2);font-size:13px">Sem dados para as equipes selecionadas</p>';
 }
 
 function renderAdminTeams(){
@@ -1177,6 +1248,108 @@ function openOpDetailAdmin(uid){
   navTo('gestor-operators');
   document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
   document.querySelector('[data-v="admin-ranking"]')?.classList.add('active');
+}
+
+function getSeniorTeams(){
+  // Returns teams managed by gestoras linked to this senior
+  const seniorId=currentUser.id;
+  const myGestoras=users.filter(u=>u.role==='gestor'&&u.seniorId===seniorId);
+  const myGestoraIds=myGestoras.map(u=>u.id);
+  return teams.filter(t=>myGestoraIds.includes(t.managerId));
+}
+function getSeniorGestoras(){
+  return users.filter(u=>u.role==='gestor'&&u.seniorId===currentUser.id);
+}
+function getSeniorData(month){
+  const tIds=getSeniorTeams().map(t=>t.id);
+  const d=getMonthData(month);
+  return d.filter(r=>tIds.includes(r.teamId));
+}
+
+function renderSeniorOverview(){
+  const data=getSeniorData(currentMonth),total=data.length;
+  const avg=total?avgOf(data,'score'):0,csatAvg=csat(data);
+  const totalLoss=data.reduce((s,r)=>s+(r.loss||0),0),avgLoss=total?Math.round(totalLoss/total):0;
+  const myTeams=getSeniorTeams();
+  const gestores=[...new Set(myTeams.map(t=>t.managerId))].filter(Boolean);
+  document.getElementById('senior-ov-sub').textContent=(currentMonth==='__ALL__'?'Todos os Meses':currentMonth)+' · '+total+' monitorias';
+  kpi('senior-total',total||'—','','total no período');
+  kpi('senior-avg',avg,avg>=42?'c-green':'c-red','pontuação média');
+  kpi('senior-loss',totalLoss,'c-red','média −'+avgLoss+' por mon.');
+  kpi('senior-csat',csatAvg+'%',csatAvg>=80?'c-green':'c-amber','Média de Qualidade');
+  kpi('senior-gestores',gestores.length,'','gestoras ativas');
+  const tStats=myTeams.filter(t=>data.some(r=>r.teamId===t.id)).map(t=>{const td=data.filter(r=>r.teamId===t.id);return{name:t.name,avg:td.length?avgOf(td,'score'):0,maxScore:td[0]?.maxScore||60};});
+  const cMax=tStats.length?Math.max(...tStats.map(t=>t.maxScore),60):60;
+  mkChart('chart-senior-teams',{type:'bar',data:{labels:tStats.map(t=>t.name),datasets:[{data:tStats.map(t=>t.avg),backgroundColor:tStats.map(t=>scoreColor(t.avg,t.maxScore)+'99'),borderColor:tStats.map(t=>scoreColor(t.avg,t.maxScore)),borderWidth:1.5,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{min:0,max:cMax,ticks:{font:{size:10}},grid:{color:'#e0e0e522'}}}}});
+  const trendData=months.map(m=>{const d2=getSeniorData(m);return d2.length?avgOf(d2,'score'):null;});
+  mkChart('chart-senior-trend',{type:'line',data:{labels:months,datasets:[{data:trendData,borderColor:'#AF52DE',backgroundColor:'#AF52DE12',pointRadius:5,tension:0.3,fill:true,borderWidth:2.5,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{min:0,max:cMax,ticks:{font:{size:10}},grid:{color:'#e0e0e522'}}}}});
+  renderDist('senior-dist',data,total);
+  renderSeniorGestoras();
+  const opsAll=users.filter(u=>u.role==='operador'&&myTeams.some(t=>t.id===u.teamId));
+  const opStats=opsAll.map(u=>{const s=agentStats(currentMonth,u.id);return s?{...s,user:u}:null;}).filter(Boolean).sort((a,b)=>b.avg-a.avg).slice(0,5);
+  document.getElementById('senior-top5').innerHTML=opStats.length?opStats.map((s,i)=>{
+    const st=avStyle(s.user.name),cls=classify(s.avg,s.maxScore);
+    return`<div class="team-rank-item"><div class="trk-rank" style="color:${i<3?'#FF9500':'var(--text2)'}">${['🥇','🥈','🥉'][i]||i+1}</div><div class="av" style="width:30px;height:30px;background:${st.bg};color:${st.fg};font-size:11px">${initials(s.user.name)}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${s.user.name}</div><div style="font-size:11px;color:var(--text2)">${teams.find(t=>t.id===s.user.teamId)?.name||''}</div></div><span class="badge ${cls.c}">${s.avg} pts</span></div>`;
+  }).join(''):'<p style="color:var(--text2);font-size:13px">Sem dados</p>';
+}
+
+function renderSeniorGestoras(){
+  const el=document.getElementById('senior-gestoras-cards');if(!el)return;
+  const gestoras=getSeniorGestoras();
+  const data=getSeniorData(currentMonth);
+  el.innerHTML=gestoras.length?gestoras.map(g=>{
+    const team=teams.find(t=>t.managerId===g.id);
+    const td=team?data.filter(r=>r.teamId===team.id):[];
+    const avg=td.length?avgOf(td,'score'):0;
+    const ops=team?users.filter(u=>u.role==='operador'&&u.teamId===team.id):[];
+    const st=avStyle(g.name),cls=classify(avg,td[0]?.maxScore||60);
+    return`<div class="card" style="flex:1;min-width:200px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:.75rem">
+        <div class="av" style="width:36px;height:36px;background:${st.bg};color:${st.fg};font-size:13px">${initials(g.name)}</div>
+        <div>
+          <div style="font-size:13px;font-weight:700">${g.name}</div>
+          <div style="font-size:11px;color:var(--text2)">${team?.name||'Sem equipe'} · ${ops.length} op.</div>
+        </div>
+        <span class="badge ${cls.c}" style="margin-left:auto">${avg} pts</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div style="background:var(--bg2);border-radius:var(--r);padding:.5rem;text-align:center">
+          <div style="font-size:16px;font-weight:800;color:${scoreColor(avg,td[0]?.maxScore||60)}">${avg}</div>
+          <div style="font-size:10px;color:var(--text2)">Média pts</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:var(--r);padding:.5rem;text-align:center">
+          <div style="font-size:16px;font-weight:800">${td.length}</div>
+          <div style="font-size:10px;color:var(--text2)">Monitorias</div>
+        </div>
+      </div>
+    </div>`;
+  }).join(''):'<p style="font-size:13px;color:var(--text2)">Nenhuma gestora vinculada ainda. Configure em Configurações.</p>';
+}
+
+function renderSeniorTeams(){
+  const data=getSeniorData(currentMonth);
+  document.getElementById('senior-teams-grid').innerHTML=getSeniorTeams().map(t=>{
+    const td=data.filter(r=>r.teamId===t.id),avg=td.length?avgOf(td,'score'):0,csatA=csat(td);
+    const mgr=users.find(u=>u.id===t.managerId),goal=getTeamGoal(t.id);
+    const ops=users.filter(u=>u.role==='operador'&&u.teamId===t.id);
+    const opStats=ops.map(u=>{const s=agentStats(currentMonth,u.id);return s?{...s,user:u}:null;}).filter(Boolean).sort((a,b)=>b.avg-a.avg);
+    const cls=classify(avg,td[0]?.maxScore||60);
+    return`<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem"><div><div style="font-size:15px;font-weight:700">${t.name}</div><div style="font-size:12px;color:var(--text2)">Gestora: ${mgr?.name||'—'}</div></div><span class="badge ${cls.c}">${avg} pts</span></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem"><div style="background:var(--bg2);border-radius:var(--r);padding:.65rem;text-align:center"><div style="font-size:18px;font-weight:700;color:${scoreColor(avg)}">${avg}</div><div style="font-size:10px;color:var(--text2)">Média pts</div></div><div style="background:var(--bg2);border-radius:var(--r);padding:.65rem;text-align:center"><div style="font-size:18px;font-weight:700;color:${csatA>=goal.csatGoal?'var(--green)':'var(--amber)'}">${csatA}%</div><div style="font-size:10px;color:var(--text2)">Qualidade</div></div><div style="background:var(--bg2);border-radius:var(--r);padding:.65rem;text-align:center"><div style="font-size:18px;font-weight:700">${td.length}</div><div style="font-size:10px;color:var(--text2)">Monitorias</div></div></div>${opStats.slice(0,5).map((s,i)=>{const st=avStyle(s.user.name);return`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openOpDetailAdmin('${s.user.id}')"><div style="font-size:12px;font-weight:700;width:20px;color:var(--text3)">${i+1}</div><div class="av" style="width:24px;height:24px;background:${st.bg};color:${st.fg};font-size:10px">${initials(s.user.name)}</div><div style="flex:1;font-size:12px">${s.user.name}</div><span style="font-size:12px;font-weight:700;color:${scoreColor(s.avg,s.maxScore)}">${s.avg}</span></div>`;}).join('')}</div>`;
+  }).join('');
+}
+
+function renderSeniorRanking(){
+  const q=(document.getElementById('senior-rank-search')||{value:''}).value.toLowerCase();
+  const myTeams=getSeniorTeams();
+  const ops=users.filter(u=>u.role==='operador'&&myTeams.some(t=>t.id===u.teamId)).filter(u=>!q||u.name.toLowerCase().includes(q));
+  const opRows=ops.map(u=>{const s=agentStats(currentMonth,u.id);if(!s)return{user:u,count:0,avg:0,zeros:0,csatVal:0,maxScore:60};return{user:u,...s};}).sort((a,b)=>b.avg-a.avg);
+  const medals=['🥇','🥈','🥉'];
+  document.getElementById('senior-rank-tbody').innerHTML=opRows.map((s,i)=>{
+    const st=avStyle(s.user.name),cls=classify(s.avg,s.maxScore),sc2=scoreColor(s.avg,s.maxScore);
+    const team=teams.find(t=>t.id===s.user.teamId),mgr=users.find(u=>u.id===team?.managerId);
+    const mx=s.maxScore||60;
+    return`<tr><td style="font-weight:800;font-size:${i<3?'16':'12'}px;color:${i<3?'#FF9500':'var(--text2)'}">${medals[i]||i+1}</td><td><div style="display:flex;align-items:center;gap:8px"><div class="av" style="width:28px;height:28px;background:${st.bg};color:${st.fg};font-size:10px">${initials(s.user.name)}</div><span>${s.user.name}</span></div></td><td style="font-size:11px;color:var(--text2)">${team?.name||'—'}</td><td style="font-size:11px;color:var(--text2)">${mgr?.name||'—'}</td><td style="text-align:center;color:var(--text2);font-size:12px">${s.count}</td><td style="text-align:center;font-weight:800;color:${sc2};font-size:16px">${s.avg}<span style="font-size:10px;font-weight:400;color:var(--text3)">/${mx}</span></td><td><div class="sbar-w"><div class="sbar" style="width:${pct(s.avg,mx)}%;background:${sc2}"></div></div></td><td style="text-align:center;font-weight:600">${s.csatVal||0}%</td><td style="text-align:center"><span class="badge ${cls.c}">${cls.l}</span></td></tr>`;
+  }).join('')||'<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text2)">Sem dados</td></tr>';
 }
 
 function renderGestorOverview(){
@@ -1530,11 +1703,14 @@ function renderAdminSettings(){
   const ops=users.filter(u=>u.role==='operador'),mgrs=users.filter(u=>u.role==='gestor'),admins=users.filter(u=>u.role==='admin');
   function renderUserTag(u){return`<tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 10px;font-size:13px;font-weight:600">${u.name}</td><td style="padding:7px 10px;font-size:11px;color:var(--text2)">${u.email||'<span style="color:var(--red)">sem e-mail</span>'}</td><td style="padding:7px 10px"><span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;${u.passwordSet===false?'background:rgba(255,179,0,.15);color:#FF9500':'background:rgba(0,204,68,.12);color:#00993a'}">${u.passwordSet===false?'⏳ Pendente':'✓ Ativo'}</span></td><td style="padding:7px 10px;white-space:nowrap"><button class="uta-btn resend" onclick="resendInvite('${u.id}')" style="font-size:11px;color:var(--ig-green);margin-right:8px">✏️ Senha</button><button class="tag-del uta-btn remove" onclick="cfgRemUser('${u.id}')" style="font-size:11px;color:var(--text3)" title="Remover">✕ Remover</button></td></tr>`;}
   const tableWrap=(rows,empty)=>rows.length?`<table style="width:100%;border-collapse:collapse;margin-bottom:8px"><thead><tr style="background:var(--bg2)"><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Nome</th><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase;letter-spacing:.04em">E-mail</th><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Status</th><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Ações</th></tr></thead><tbody>${rows.map(renderUserTag).join('')}</tbody></table>`:`<p style="font-size:12px;color:var(--text2);margin-bottom:8px">${empty}</p>`;
+  const seniors=users.filter(u=>u.role==='gestor_senior');
   document.getElementById('cfg-admins').innerHTML=tableWrap(admins,'Nenhum administrador cadastrado.');
+  const cfgSeniorsEl=document.getElementById('cfg-seniors');
+  if(cfgSeniorsEl)cfgSeniorsEl.innerHTML=tableWrap(seniors,'Nenhum gestor sênior cadastrado.');
   document.getElementById('cfg-agents').innerHTML=tableWrap(ops,'Nenhum operador cadastrado.');
   document.getElementById('cfg-managers').innerHTML=tableWrap(mgrs,'Nenhum gestor cadastrado.');
   document.getElementById('cfg-months').innerHTML=months.map(m=>`<span class="tag">${m}<button class="tag-del" onclick="cfgRemMonth('${m}')">✕</button></span>`).join('');
-  renderCfgAssign();cfgPopulateCriteriaTeamSel();cfgLoadTeamCriteria();
+  renderCfgAssignSenior();renderCfgAssign();cfgPopulateCriteriaTeamSel();cfgLoadTeamCriteria();
 }
 
 function renderCfgTeams(){
@@ -1601,10 +1777,9 @@ function cfgConfirmSetPassword(){
   const errEl=document.getElementById('set-pw-err');
   if(pw.length<4){errEl.textContent='Senha deve ter pelo menos 4 caracteres.';return;}
   const u=_pendingNewUser;if(!u)return;
-  u.password=pw;u.passwordSet=true;users.push(u);saveState();
+  u.password=pw;u.passwordSet=true;users.push(u);
   document.getElementById('set-pw-modal')?.remove();_pendingNewUser=null;
-  renderAdminSettings();
-  showInviteToast(`✅ <strong>${u.name}</strong> cadastrado com sucesso!`);
+  saveStateNow().then(()=>{renderAdminSettings();showInviteToast(`✅ <strong>${u.name}</strong> cadastrado com sucesso!`);});
 }
 
 async function cfgAddAgent(){
@@ -1619,13 +1794,29 @@ async function cfgAddAgent(){
 async function cfgAddManager(){
   const n=document.getElementById('new-manager').value.trim();
   const email=document.getElementById('new-manager-email').value.trim();
+  const isSenior=document.getElementById('new-manager-is-senior')?.checked||false;
   if(!n){showCfgFieldError('new-manager','Nome do gestor é obrigatório.');return;}
   if(!email||!email.includes('@')){showCfgFieldError('new-manager-email','E-mail válido é obrigatório.');return;}
   if(users.find(u=>u.email&&u.email.toLowerCase()===email.toLowerCase())){showCfgFieldError('new-manager-email','E-mail já cadastrado.');return;}
   document.getElementById('new-manager').value='';document.getElementById('new-manager-email').value='';
-  const mid='m'+Date.now(),tid='t'+Date.now();
-  teams.push({id:tid,name:n+"'s Equipe",managerId:mid,criteriaId:'global'});saveState();
-  cfgOpenSetPassword({id:mid,name:n,role:'gestor',teamId:tid,password:'',email,passwordSet:false});
+  if(document.getElementById('new-manager-is-senior'))document.getElementById('new-manager-is-senior').checked=false;
+  if(isSenior){
+    // Create as gestor_senior — no team created
+    cfgOpenSetPassword({id:'senior'+Date.now(),name:n,role:'gestor_senior',teamId:null,password:'',email,passwordSet:false});
+  } else {
+    const mid='m'+Date.now(),tid='t'+Date.now();
+    teams.push({id:tid,name:n+"'s Equipe",managerId:mid,criteriaId:''});saveState();
+    cfgOpenSetPassword({id:mid,name:n,role:'gestor',teamId:tid,password:'',email,passwordSet:false});
+  }
+}
+async function cfgAddSenior(){
+  const n=document.getElementById('new-senior').value.trim();
+  const email=document.getElementById('new-senior-email').value.trim();
+  if(!n){showCfgFieldError('new-senior','Nome é obrigatório.');return;}
+  if(!email||!email.includes('@')){showCfgFieldError('new-senior-email','E-mail válido é obrigatório.');return;}
+  if(users.find(u=>u.email&&u.email.toLowerCase()===email.toLowerCase())){showCfgFieldError('new-senior-email','E-mail já cadastrado.');return;}
+  document.getElementById('new-senior').value='';document.getElementById('new-senior-email').value='';
+  cfgOpenSetPassword({id:'senior'+Date.now(),name:n,role:'gestor_senior',teamId:null,password:'',email,passwordSet:false});
 }
 async function cfgAddAdmin(){
   const n=document.getElementById('new-admin').value.trim();
@@ -1646,9 +1837,51 @@ async function resendInvite(userId){
   setTimeout(()=>document.getElementById('reset-pw-input')?.focus(),100);
 }
 
+function renderCfgAssignSenior(){
+  const el=document.getElementById('cfg-assign-senior');if(!el)return;
+  const seniors=users.filter(u=>u.role==='gestor_senior');
+  const gestoras=users.filter(u=>u.role==='gestor');
+  if(!seniors.length){el.innerHTML='<p style="font-size:12px;color:var(--text2);padding:8px 0">Nenhum gestor sênior cadastrado. Cadastre em Gestores marcando a opção 🌟 Gestor Sênior.</p>';return;}
+  if(!gestoras.length){el.innerHTML='<p style="font-size:12px;color:var(--text2);padding:8px 0">Nenhuma gestora cadastrada ainda.</p>';return;}
+  el.innerHTML=seniors.map(s=>{
+    const linked=gestoras.filter(g=>g.seniorId===s.id);
+    const unlinked=gestoras.filter(g=>!g.seniorId||g.seniorId!==s.id);
+    const st=avStyle(s.name);
+    return`<div class="mgr-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="av" style="width:28px;height:28px;background:${st.bg};color:${st.fg};font-size:10px">${initials(s.name)}</div>
+          <span style="font-size:13px;font-weight:700">${s.name}</span>
+          <span class="badge" style="background:rgba(175,82,222,.15);color:#AF52DE;font-size:9px">Sênior</span>
+        </div>
+        <span style="font-size:11px;color:var(--text2)">${linked.length} gestora${linked.length!==1?'s':''}</span>
+      </div>
+      <div class="tag-row">${linked.map(g=>`<span class="tag">${g.name}<button class="tag-del" onclick="cfgUnlinkGestora('${g.id}')">✕</button></span>`).join('')}</div>
+      ${unlinked.length?`<div style="display:flex;gap:6px;margin-top:6px">
+        <select id="asg-senior-${s.id}" style="flex:1;font-size:12px;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none">
+          <option value="">Vincular gestora...</option>
+          ${unlinked.map(g=>`<option value="${g.id}">${g.name}</option>`).join('')}
+        </select>
+        <button onclick="cfgLinkGestora('${s.id}')" style="background:var(--ig-green);color:#fff;border:none;border-radius:var(--r);padding:5px 12px;font-size:12px;cursor:pointer;font-weight:700">+ Vincular</button>
+      </div>`:'<div style="font-size:11px;color:var(--text3);margin-top:4px">Todas as gestoras vinculadas.</div>'}
+    </div>`;
+  }).join('');
+}
+function cfgLinkGestora(seniorId){
+  const sel=document.getElementById('asg-senior-'+seniorId);
+  if(!sel||!sel.value)return;
+  const g=users.find(u=>u.id===sel.value);
+  if(g){g.seniorId=seniorId;saveState();renderCfgAssignSenior();showInviteToast(`<strong>${g.name}</strong> vinculada com sucesso!`);}
+}
+function cfgUnlinkGestora(gestorId){
+  const g=users.find(u=>u.id===gestorId);
+  if(g){delete g.seniorId;saveState();renderCfgAssignSenior();showInviteToast(`Vínculo removido.`);}
+}
 function renderCfgAssign(){
   const mgrs=users.filter(u=>u.role==='gestor');
   const el=document.getElementById('cfg-assign');
+  if(!el)return;
+  if(!mgrs.length){el.innerHTML='<p style="font-size:12px;color:var(--text2);padding:8px 0">Nenhuma gestora cadastrada ainda.</p>';return;}
   el.innerHTML=mgrs.map(m=>{
     const tm=teams.find(t=>t.managerId===m.id);
     const ops2=tm?users.filter(u=>u.role==='operador'&&u.teamId===tm.id):[];
@@ -1898,7 +2131,7 @@ function addEntry(){
   const tm=teams.find(t=>t.id===agent?.teamId);
   if(!records[month])records[month]=[];
   records[month].push({id:'r'+Date.now()+'_'+Math.random().toString(36).slice(2),proto,agentId,agentName:agent?.name||'',managerId,managerName:mgr?.name||'',teamId:agent?.teamId||'',teamName:tm?.name||'',criteriaId:tm?.criteriaId||'global',maxScore:sc.maxScore,date,score,loss,csatScore,perfil,nivel,failedQ,failedC,hasCrit,obs});
-  saveState();closeModal();refreshView();
+  saveStateNow().then(()=>{closeModal();refreshView();});
 }
 
 function showScreen(name){
@@ -1978,35 +2211,94 @@ const _supabase=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let _syncTimeout=null;
 
 async function dbSave(){
+  showSyncIndicator('saving');
   try{
     await _supabase.from('ig_state').upsert({
       id:'main',
       payload:{users,teams,months,records,criteria},
       updated_at:new Date().toISOString()
     },{onConflict:'id'});
-  }catch(e){console.warn('[DB save error]',e);}
+    showSyncIndicator('saved');
+  }catch(e){
+    console.warn('[DB save error]',e);
+    showSyncIndicator('error');
+    // Retry once after 3 seconds
+    setTimeout(()=>dbSave(),3000);
+  }
+}
+let _syncIndicatorTimeout=null;
+function showSyncIndicator(state){
+  let el=document.getElementById('sync-indicator');
+  if(!el){
+    el=document.createElement('div');
+    el.id='sync-indicator';
+    el.style.cssText='position:fixed;bottom:1rem;left:1rem;font-size:11px;padding:5px 12px;border-radius:20px;z-index:9999;transition:all .3s;pointer-events:none;font-weight:600;';
+    document.body.appendChild(el);
+  }
+  clearTimeout(_syncIndicatorTimeout);
+  if(state==='saving'){
+    el.textContent='⏳ Salvando...';
+    el.style.background='rgba(255,179,0,.15)';
+    el.style.color='#FF9500';
+    el.style.border='1px solid rgba(255,179,0,.3)';
+    el.style.opacity='1';
+  } else if(state==='saved'){
+    el.textContent='✓ Salvo';
+    el.style.background='rgba(0,204,68,.15)';
+    el.style.color='#00993a';
+    el.style.border='1px solid rgba(0,204,68,.3)';
+    el.style.opacity='1';
+    _syncIndicatorTimeout=setTimeout(()=>{el.style.opacity='0';},2000);
+  } else if(state==='error'){
+    el.textContent='⚠ Erro ao salvar';
+    el.style.background='rgba(255,59,48,.15)';
+    el.style.color='#FF3B30';
+    el.style.border='1px solid rgba(255,59,48,.3)';
+    el.style.opacity='1';
+    _syncIndicatorTimeout=setTimeout(()=>{el.style.opacity='0';},4000);
+  }
 }
 
 async function dbLoad(){
   try{
     const{data,error}=await _supabase.from('ig_state').select('payload').eq('id','main').single();
-    if(error||!data)return false;
+    if(error||!data?.payload)return false;
     const p=data.payload;
-    if(p?.users?.length){users=p.users;teams=p.teams;months=p.months;records=p.records;criteria=p.criteria||{};ss(K.STATE,{users,teams,months,records,criteria});return true;}
+    // Accept payload if it has ANY meaningful data
+    if(p && (p.users?.length||p.teams?.length||p.months?.length)){
+      users=p.users||[];
+      teams=p.teams||[];
+      months=p.months||[];
+      records=p.records||{};
+      criteria=p.criteria||{};
+      ss(K.STATE,{users,teams,months,records,criteria});
+      return true;
+    }
     return false;
   }catch(e){console.warn('[DB load error]',e);return false;}
 }
 
+let _dbReady=false;
 function saveState(){
   ss(K.STATE,{users,teams,months,records,criteria});
+  if(!_dbReady){console.warn('[saveState] dbLoad not done yet, skipping remote save');return;}
   clearTimeout(_syncTimeout);
-  _syncTimeout=setTimeout(()=>dbSave(),1500);
+  _syncTimeout=setTimeout(()=>dbSave(),400);
+}
+async function saveStateNow(){
+  ss(K.STATE,{users,teams,months,records,criteria});
+  if(!_dbReady){console.warn('[saveStateNow] dbLoad not done yet, skipping remote save');return;}
+  clearTimeout(_syncTimeout);
+  await dbSave();
 }
 
 // ══════════════════════════════════════════════════════════
 // BOOT — sempre busca do Supabase primeiro
 // ══════════════════════════════════════════════════════════
 loadState();
+window.addEventListener('beforeunload',()=>{
+  if(_syncTimeout){clearTimeout(_syncTimeout);dbSave();}
+});
 _supabase.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY')showScreen('criar-senha');});
 (async()=>{
   const hash=window.location.hash;
@@ -2015,14 +2307,22 @@ _supabase.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY
   const loginFormWrap=document.getElementById('login-form-wrap');
   loginLoading.style.display='block';loginFormWrap.style.display='none';
   try{
-    await dbLoad();
+    const loaded=await dbLoad();
+    if(!loaded){
+      // Supabase returned nothing useful — keep localStorage state but warn
+      console.warn('[boot] dbLoad returned no data, using localStorage');
+    }
+    _dbReady=true;
     const{data:{session}}=await _supabase.auth.getSession();
     if(session){
       const email=session.user.email;
       const u=users.find(x=>x.email&&x.email.toLowerCase()===email.toLowerCase());
       if(u){login(u);return;}
     }
-  }catch(e){console.warn('[boot error]',e);}
+  }catch(e){
+    console.warn('[boot error]',e);
+    _dbReady=true; // allow saves even if boot failed
+  }
   loginLoading.style.display='none';loginFormWrap.style.display='block';
 })();
 </script>
