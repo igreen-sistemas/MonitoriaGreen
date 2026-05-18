@@ -984,6 +984,7 @@ function doLogin(){
   if(!pw){errEl.textContent='Informe a senha.';return;}
   const u=users.find(x=>x.email&&x.email.toLowerCase()===email.toLowerCase());
   if(!u){errEl.textContent='E-mail não encontrado.';return;}
+  if(u.active===false){errEl.textContent='Usuário desativado. Contacte o administrador.';return;}
   if(u.password!==pw){errEl.textContent='Senha incorreta.';return;}
   login(u);
 }
@@ -994,12 +995,14 @@ function login(u){
   document.getElementById('app').style.display='block';
   currentMonth=months[months.length-1]||'';
   buildHeader();buildMonthPicker();buildNav();
+  startPolling();
   if(u.role==='admin')navTo('admin-overview');
   else if(u.role==='gestor')navTo('gestor-overview');
   else if(u.role==='gestor_senior')navTo('senior-overview');
   else navTo('op-dashboard');
 }
 function doLogout(){
+  if(_pollInterval){clearInterval(_pollInterval);_pollInterval=null;}
   currentUser=null;cfgUnlocked=false;
   document.getElementById('app').style.display='none';
   document.getElementById('login-screen').style.display='flex';
@@ -1124,7 +1127,7 @@ function filtered(month){
   let d=getMonthData(month);
   if(currentUser.role==='gestor'){
     // Use current teamId of the agent (reflects transfers)
-    const myOps=users.filter(u=>u.role==='operador'&&u.teamId===currentUser.teamId).map(u=>u.id);
+    const myOps=users.filter(u=>u.role==='operador'&&u.teamId===currentUser.teamId&&u.active!==false).map(u=>u.id);
     d=d.filter(r=>myOps.includes(r.agentId));
   }
   else if(currentUser.role==='gestor_senior'){
@@ -1717,7 +1720,17 @@ function renderAdminSettings(){
   document.getElementById('cfg-locked').style.display='none';document.getElementById('cfg-unlocked').style.display='block';
   renderCfgTeams();
   const ops=users.filter(u=>u.role==='operador'),mgrs=users.filter(u=>u.role==='gestor'),admins=users.filter(u=>u.role==='admin');
-  function renderUserTag(u){return`<tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 10px;font-size:13px;font-weight:600">${u.name}</td><td style="padding:7px 10px;font-size:11px;color:var(--text2)">${u.email||'<span style="color:var(--red)">sem e-mail</span>'}</td><td style="padding:7px 10px"><span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;${u.passwordSet===false?'background:rgba(255,179,0,.15);color:#FF9500':'background:rgba(0,204,68,.12);color:#00993a'}">${u.passwordSet===false?'⏳ Pendente':'✓ Ativo'}</span></td><td style="padding:7px 10px;white-space:nowrap"><button class="uta-btn resend" onclick="resendInvite('${u.id}')" style="font-size:11px;color:var(--ig-green);margin-right:8px">✏️ Senha</button><button class="tag-del uta-btn remove" onclick="cfgRemUser('${u.id}')" style="font-size:11px;color:var(--text3)" title="Remover">✕ Remover</button></td></tr>`;}
+  function renderUserTag(u){
+    const isInactive=u.active===false;
+    const statusBadge=isInactive
+      ?`<span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(255,59,48,.12);color:#FF3B30">⛔ Inativo</span>`
+      :`<span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;${u.passwordSet===false?'background:rgba(255,179,0,.15);color:#FF9500':'background:rgba(0,204,68,.12);color:#00993a'}">${u.passwordSet===false?'⏳ Pendente':'✓ Ativo'}</span>`;
+    const emailDisplay=isInactive?`<span style="color:var(--text3);font-style:italic">desativado</span>`:(u.email||`<span style="color:var(--red)">sem e-mail</span>`);
+    const actions=isInactive
+      ?`<button onclick="cfgReactivateUser('${u.id}')" style="font-size:11px;color:var(--ig-green);background:none;border:none;cursor:pointer;margin-right:8px">↩ Reativar</button><button onclick="cfgDeleteUserPermanent('${u.id}')" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer">🗑 Excluir</button>`
+      :`<button class="uta-btn resend" onclick="resendInvite('${u.id}')" style="font-size:11px;color:var(--ig-green);margin-right:8px">✏️ Senha</button><button class="tag-del uta-btn remove" onclick="cfgRemUser('${u.id}')" style="font-size:11px;color:var(--text3)" title="Desativar">⛔ Desativar</button>`;
+    return`<tr style="border-bottom:1px solid var(--border);opacity:${isInactive?.5:1}"><td style="padding:7px 10px;font-size:13px;font-weight:600">${u.name}</td><td style="padding:7px 10px;font-size:11px;color:var(--text2)">${emailDisplay}</td><td style="padding:7px 10px">${statusBadge}</td><td style="padding:7px 10px;white-space:nowrap">${actions}</td></tr>`;
+  }
   const tableWrap=(rows,empty)=>rows.length?`<table style="width:100%;border-collapse:collapse;margin-bottom:8px"><thead><tr style="background:var(--bg2)"><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Nome</th><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase;letter-spacing:.04em">E-mail</th><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Status</th><th style="padding:6px 10px;font-size:10px;color:var(--text2);text-align:left;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Ações</th></tr></thead><tbody>${rows.map(renderUserTag).join('')}</tbody></table>`:`<p style="font-size:12px;color:var(--text2);margin-bottom:8px">${empty}</p>`;
   const seniors=users.filter(u=>u.role==='gestor_senior');
   document.getElementById('cfg-admins').innerHTML=tableWrap(admins,'Nenhum administrador cadastrado.');
@@ -1776,7 +1789,29 @@ function cfgRemTeam(tid){
 }
 function cfgSetTeamCriteria(teamId,criteriaId){const t=teams.find(x=>x.id===teamId);if(t){t.criteriaId=criteriaId;saveState();}}
 
-function cfgRemUser(id){if(!confirm('Remover usuário? Registros históricos mantidos.'))return;users=users.filter(u=>u.id!==id);saveState();renderAdminSettings();}
+function cfgRemUser(id){
+  const u=users.find(x=>x.id===id);if(!u)return;
+  if(!confirm(`Desativar "${u.name}"?\n\nO usuário não poderá mais fazer login, mas todas as monitorias serão mantidas.`))return;
+  // Mark as inactive instead of deleting — preserves all monitoring data
+  u.active=false;
+  u.email_disabled='__disabled__'+u.email;
+  u.email='';
+  saveState();renderAdminSettings();
+  showInviteToast(`<strong>${u.name}</strong> desativado. Monitorias preservadas.`);
+}
+function cfgReactivateUser(id){
+  const u=users.find(x=>x.id===id);if(!u)return;
+  const modal_html=`<div class="mb" id="reactivate-modal"><div class="mo" style="max-width:400px"><div class="mo-hd"><h3>Reativar — ${u.name}</h3><button class="mo-cl" onclick="document.getElementById('reactivate-modal').remove()">✕</button></div><div class="mo-body"><p style="font-size:13px;color:var(--text2);margin-bottom:1rem">Informe o novo e-mail de acesso para reativar este usuário.</p><div class="field"><label>E-mail</label><input type="email" id="reactivate-email" placeholder="novo@email.com.br" value="${u.email_disabled?u.email_disabled.replace('__disabled__',''):''}"></div></div><div class="mo-ft"><button class="btn btn-sec" onclick="document.getElementById('reactivate-modal').remove()">Cancelar</button><button class="btn btn-dark" onclick="(()=>{const email=document.getElementById('reactivate-email').value.trim();if(!email||!email.includes('@')){alert('E-mail inválido.');return;}const u=users.find(x=>x.id==='${u.id}');if(u){u.active=true;u.email=email;delete u.email_disabled;saveState();document.getElementById('reactivate-modal').remove();renderAdminSettings();showInviteToast('${u.name} reativado com sucesso!');}})()">Reativar</button></div></div></div>`;
+  const div=document.createElement('div');div.innerHTML=modal_html;document.body.appendChild(div.firstChild);
+  setTimeout(()=>document.getElementById('reactivate-email')?.focus(),100);
+}
+function cfgDeleteUserPermanent(id){
+  const u=users.find(x=>x.id===id);if(!u)return;
+  if(!confirm(`⚠️ ATENÇÃO: Excluir permanentemente "${u.name}"?\n\nIsso NÃO apaga as monitorias registradas, mas o usuário não poderá ser reativado.\n\nTem certeza?`))return;
+  users=users.filter(x=>x.id!==id);
+  saveState();renderAdminSettings();
+  showInviteToast(`Usuário excluído permanentemente.`);
+}
 
 let _pendingNewUser=null;
 function cfgOpenSetPassword(user){
@@ -2226,68 +2261,66 @@ const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 const _supabase=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 let _syncTimeout=null;
-
-async function dbSave(){
-  showSyncIndicator('saving');
-  try{
-    await _supabase.from('ig_state').upsert({
-      id:'main',
-      payload:{users,teams,months,records,criteria},
-      updated_at:new Date().toISOString()
-    },{onConflict:'id'});
-    showSyncIndicator('saved');
-  }catch(e){
-    console.warn('[DB save error]',e);
-    showSyncIndicator('error');
-    // Retry once after 3 seconds
-    setTimeout(()=>dbSave(),3000);
-  }
-}
+let _lastRemoteAt=0;   // timestamp of last known remote state
+let _isSaving=false;
 let _syncIndicatorTimeout=null;
+let _pollInterval=null;
+let _dbReady=false;
+
 function showSyncIndicator(state){
   let el=document.getElementById('sync-indicator');
   if(!el){
     el=document.createElement('div');
     el.id='sync-indicator';
-    el.style.cssText='position:fixed;bottom:1rem;left:1rem;font-size:11px;padding:5px 12px;border-radius:20px;z-index:9999;transition:all .3s;pointer-events:none;font-weight:600;';
+    el.style.cssText='position:fixed;bottom:1rem;left:1rem;font-size:11px;padding:6px 13px;border-radius:20px;z-index:9999;transition:opacity .3s;pointer-events:none;font-weight:600;opacity:0;';
     document.body.appendChild(el);
   }
   clearTimeout(_syncIndicatorTimeout);
-  if(state==='saving'){
-    el.textContent='⏳ Salvando...';
-    el.style.background='rgba(255,179,0,.15)';
-    el.style.color='#FF9500';
-    el.style.border='1px solid rgba(255,179,0,.3)';
-    el.style.opacity='1';
-  } else if(state==='saved'){
-    el.textContent='✓ Salvo';
-    el.style.background='rgba(0,204,68,.15)';
-    el.style.color='#00993a';
-    el.style.border='1px solid rgba(0,204,68,.3)';
-    el.style.opacity='1';
-    _syncIndicatorTimeout=setTimeout(()=>{el.style.opacity='0';},2000);
-  } else if(state==='error'){
-    el.textContent='⚠ Erro ao salvar';
-    el.style.background='rgba(255,59,48,.15)';
-    el.style.color='#FF3B30';
-    el.style.border='1px solid rgba(255,59,48,.3)';
-    el.style.opacity='1';
-    _syncIndicatorTimeout=setTimeout(()=>{el.style.opacity='0';},4000);
+  const cfg={
+    saving:{t:'⏳ Salvando...',bg:'rgba(255,179,0,.18)',c:'#b36a00',b:'rgba(255,179,0,.4)'},
+    saved:{t:'✓ Salvo',bg:'rgba(0,204,68,.15)',c:'#00993a',b:'rgba(0,204,68,.3)'},
+    error:{t:'⚠ Falha — tentando novamente...',bg:'rgba(255,59,48,.15)',c:'#FF3B30',b:'rgba(255,59,48,.3)'},
+    reload:{t:'🔄 Novos dados disponíveis...',bg:'rgba(0,122,255,.15)',c:'#007AFF',b:'rgba(0,122,255,.3)'},
+  };
+  const s=cfg[state]||cfg.saving;
+  el.textContent=s.t;el.style.background=s.bg;el.style.color=s.c;
+  el.style.border=`1px solid ${s.b}`;el.style.opacity='1';
+  if(state==='saved')_syncIndicatorTimeout=setTimeout(()=>{el.style.opacity='0';},2500);
+  if(state==='error')_syncIndicatorTimeout=setTimeout(()=>{el.style.opacity='0';},5000);
+}
+
+async function dbSave(){
+  if(!_dbReady||_isSaving)return;
+  _isSaving=true;
+  showSyncIndicator('saving');
+  try{
+    const now=new Date().toISOString();
+    const{error}=await _supabase.from('ig_state').upsert({
+      id:'main',
+      payload:{users,teams,months,records,criteria},
+      updated_at:now
+    },{onConflict:'id'});
+    if(error)throw error;
+    _lastRemoteAt=new Date(now).getTime();
+    showSyncIndicator('saved');
+  }catch(e){
+    console.warn('[DB save error]',e);
+    showSyncIndicator('error');
+    setTimeout(()=>dbSave(),5000);
+  }finally{
+    _isSaving=false;
   }
 }
 
 async function dbLoad(){
   try{
-    const{data,error}=await _supabase.from('ig_state').select('payload').eq('id','main').single();
+    const{data,error}=await _supabase.from('ig_state').select('payload,updated_at').eq('id','main').single();
     if(error||!data?.payload)return false;
     const p=data.payload;
-    // Accept payload if it has ANY meaningful data
-    if(p && (p.users?.length||p.teams?.length||p.months?.length)){
-      users=p.users||[];
-      teams=p.teams||[];
-      months=p.months||[];
-      records=p.records||{};
-      criteria=p.criteria||{};
+    if(p&&(p.users?.length||p.teams?.length||p.months?.length)){
+      users=p.users||[];teams=p.teams||[];months=p.months||[];
+      records=p.records||{};criteria=p.criteria||{};
+      if(data.updated_at)_lastRemoteAt=new Date(data.updated_at).getTime();
       ss(K.STATE,{users,teams,months,records,criteria});
       return true;
     }
@@ -2295,16 +2328,34 @@ async function dbLoad(){
   }catch(e){console.warn('[DB load error]',e);return false;}
 }
 
-let _dbReady=false;
+// Poll every 30s — detect changes from other computers and reload
+function startPolling(){
+  if(_pollInterval)clearInterval(_pollInterval);
+  _pollInterval=setInterval(async()=>{
+    if(!currentUser||!_dbReady||_isSaving)return;
+    try{
+      const{data}=await _supabase.from('ig_state').select('updated_at').eq('id','main').single();
+      if(!data?.updated_at)return;
+      const remoteAt=new Date(data.updated_at).getTime();
+      // If remote is newer than what we last saved/loaded, reload
+      if(remoteAt>_lastRemoteAt+2000){
+        showSyncIndicator('reload');
+        const loaded=await dbLoad();
+        if(loaded){refreshView();showSyncIndicator('saved');}
+      }
+    }catch(e){}
+  },30000);
+}
+
 function saveState(){
   ss(K.STATE,{users,teams,months,records,criteria});
-  if(!_dbReady){console.warn('[saveState] dbLoad not done yet, skipping remote save');return;}
+  if(!_dbReady)return;
   clearTimeout(_syncTimeout);
-  _syncTimeout=setTimeout(()=>dbSave(),400);
+  _syncTimeout=setTimeout(()=>dbSave(),600);
 }
 async function saveStateNow(){
   ss(K.STATE,{users,teams,months,records,criteria});
-  if(!_dbReady){console.warn('[saveStateNow] dbLoad not done yet, skipping remote save');return;}
+  if(!_dbReady)return;
   clearTimeout(_syncTimeout);
   await dbSave();
 }
