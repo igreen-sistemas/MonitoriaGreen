@@ -1002,6 +1002,7 @@ function login(u){
   else navTo('op-dashboard');
 }
 function doLogout(){
+  if(_realtimeChannel){_supabase.removeChannel(_realtimeChannel);_realtimeChannel=null;}
   if(_pollInterval){clearInterval(_pollInterval);_pollInterval=null;}
   currentUser=null;cfgUnlocked=false;
   document.getElementById('app').style.display='none';
@@ -2328,23 +2329,50 @@ async function dbLoad(){
   }catch(e){console.warn('[DB load error]',e);return false;}
 }
 
-// Poll every 30s — detect changes from other computers and reload
+// Realtime listener — instant sync across all open tabs/computers
+let _realtimeChannel=null;
 function startPolling(){
-  if(_pollInterval)clearInterval(_pollInterval);
-  _pollInterval=setInterval(async()=>{
-    if(!currentUser||!_dbReady||_isSaving)return;
-    try{
-      const{data}=await _supabase.from('ig_state').select('updated_at').eq('id','main').single();
-      if(!data?.updated_at)return;
-      const remoteAt=new Date(data.updated_at).getTime();
-      // If remote is newer than what we last saved/loaded, reload
-      if(remoteAt>_lastRemoteAt+2000){
+  if(_realtimeChannel){_supabase.removeChannel(_realtimeChannel);_realtimeChannel=null;}
+  if(_realtimeChannel){_supabase.removeChannel(_realtimeChannel);_realtimeChannel=null;}
+  if(_pollInterval){clearInterval(_pollInterval);_pollInterval=null;}
+  _realtimeChannel=_supabase
+    .channel('ig_state_changes')
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'ig_state',filter:'id=eq.main'},
+      async(payload)=>{
+        if(!currentUser||!_dbReady||_isSaving)return;
+        const remoteAt=payload.new?.updated_at?new Date(payload.new.updated_at).getTime():0;
+        if(remoteAt<=_lastRemoteAt+1000)return; // already have this version
         showSyncIndicator('reload');
-        const loaded=await dbLoad();
-        if(loaded){refreshView();showSyncIndicator('saved');}
+        const p=payload.new?.payload;
+        if(p&&(p.users?.length||p.teams?.length||p.months?.length)){
+          users=p.users||[];teams=p.teams||[];months=p.months||[];
+          records=p.records||{};criteria=p.criteria||{};
+          _lastRemoteAt=remoteAt;
+          ss(K.STATE,{users,teams,months,records,criteria});
+          refreshView();
+          showSyncIndicator('saved');
+        }
       }
-    }catch(e){}
-  },30000);
+    )
+    .subscribe((status)=>{
+      console.log('[Realtime] status:',status);
+      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
+        console.warn('[Realtime] fallback to polling');
+        _pollInterval=setInterval(async()=>{
+          if(!currentUser||!_dbReady||_isSaving)return;
+          try{
+            const{data}=await _supabase.from('ig_state').select('updated_at').eq('id','main').single();
+            if(!data?.updated_at)return;
+            const remoteAt=new Date(data.updated_at).getTime();
+            if(remoteAt>_lastRemoteAt+2000){
+              showSyncIndicator('reload');
+              const loaded=await dbLoad();
+              if(loaded){refreshView();showSyncIndicator('saved');}
+            }
+          }catch(e){}
+        },15000);
+      }
+    });
 }
 
 function saveState(){
