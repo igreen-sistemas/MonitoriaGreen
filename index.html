@@ -1002,7 +1002,6 @@ function login(u){
   else navTo('op-dashboard');
 }
 function doLogout(){
-  if(_realtimeChannel){_supabase.removeChannel(_realtimeChannel);_realtimeChannel=null;}
   if(_pollInterval){clearInterval(_pollInterval);_pollInterval=null;}
   currentUser=null;cfgUnlocked=false;
   document.getElementById('app').style.display='none';
@@ -2290,17 +2289,46 @@ function showSyncIndicator(state){
   if(state==='error')_syncIndicatorTimeout=setTimeout(()=>{el.style.opacity='0';},5000);
 }
 
+// Conversão entre o modelo em memória (camelCase) e as colunas do banco (snake_case)
+function teamToRow(t){return{id:t.id,name:t.name,manager_id:t.managerId||null,criteria_id:t.criteriaId||null};}
+function rowToTeam(r){return{id:r.id,name:r.name,managerId:r.manager_id,criteriaId:r.criteria_id};}
+function userToRow(u){return{id:u.id,name:u.name,role:u.role,email:u.email||null,team_id:u.teamId||null,password:u.password||null,password_set:u.passwordSet??null,active:u.active??null,email_disabled:u.email_disabled||null,senior_id:u.seniorId||null};}
+function rowToUser(r){const u={id:r.id,name:r.name,role:r.role,email:r.email,teamId:r.team_id,password:r.password,passwordSet:r.password_set};if(r.senior_id)u.seniorId=r.senior_id;if(r.email_disabled)u.email_disabled=r.email_disabled;if(r.active!=null)u.active=r.active;return u;}
+function critToRow(c){return{id:c.id,name:c.name,max_score:c.maxScore??60,mon_per_op:c.monPerOp??8,items:c.items||[],critical_items:c.criticalItems||[]};}
+function rowToCrit(r){return{id:r.id,name:r.name,maxScore:r.max_score,monPerOp:r.mon_per_op,items:r.items||[],criticalItems:r.critical_items||[]};}
+function recToRow(r,month){return{id:r.id,month,agent_id:r.agentId||null,agent_name:r.agentName||null,team_id:r.teamId||null,team_name:r.teamName||null,manager_id:r.managerId||null,manager_name:r.managerName||null,criteria_id:r.criteriaId||null,date:r.date||null,proto:r.proto||null,obs:r.obs||null,score:r.score??0,loss:r.loss??0,max_score:r.maxScore??60,csat_score:r.csatScore??null,nivel:r.nivel||null,has_crit:!!r.hasCrit,perfil:r.perfil||[],failed_q:r.failedQ||[],failed_c:r.failedC||[]};}
+function rowToRec(r){return{id:r.id,obs:r.obs,date:r.date,loss:r.loss,nivel:r.nivel,proto:r.proto,score:r.score,perfil:r.perfil||[],teamId:r.team_id,agentId:r.agent_id,failedC:r.failed_c||[],failedQ:r.failed_q||[],hasCrit:r.has_crit,maxScore:r.max_score,teamName:r.team_name,agentName:r.agent_name,csatScore:r.csat_score,managerId:r.manager_id,criteriaId:r.criteria_id,managerName:r.manager_name};}
+
+// Sincroniza uma tabela: grava as linhas atuais e remove as que não existem mais
+async function syncTable(table,keyCol,rows){
+  if(rows.length){
+    const{error}=await _supabase.from(table).upsert(rows,{onConflict:keyCol});
+    if(error)throw error;
+  }
+  const{data:existing,error:selErr}=await _supabase.from(table).select(keyCol);
+  if(selErr)throw selErr;
+  const keep=new Set(rows.map(r=>r[keyCol]));
+  const stale=(existing||[]).map(e=>e[keyCol]).filter(k=>!keep.has(k));
+  if(stale.length){
+    const{error}=await _supabase.from(table).delete().in(keyCol,stale);
+    if(error)throw error;
+  }
+}
+
 async function dbSave(){
   if(!_dbReady||_isSaving)return;
   _isSaving=true;
   showSyncIndicator('saving');
   try{
+    await syncTable('app_teams','id',teams.map(teamToRow));
+    await syncTable('app_users','id',users.map(userToRow));
+    await syncTable('app_months','name',months.map((m,i)=>({name:m,sort_order:i})));
+    await syncTable('app_criteria','id',Object.values(criteria).map(critToRow));
+    const recRows=[];
+    Object.entries(records).forEach(([m,arr])=>(arr||[]).forEach(r=>recRows.push(recToRow(r,m))));
+    await syncTable('app_records','id',recRows);
     const now=new Date().toISOString();
-    const{error}=await _supabase.from('ig_state').upsert({
-      id:'main',
-      payload:{users,teams,months,records,criteria},
-      updated_at:now
-    },{onConflict:'id'});
+    const{error}=await _supabase.from('app_sync').upsert({id:'main',updated_at:now},{onConflict:'id'});
     if(error)throw error;
     _lastRemoteAt=new Date(now).getTime();
     showSyncIndicator('saved');
@@ -2315,64 +2343,45 @@ async function dbSave(){
 
 async function dbLoad(){
   try{
-    const{data,error}=await _supabase.from('ig_state').select('payload,updated_at').eq('id','main').single();
-    if(error||!data?.payload)return false;
-    const p=data.payload;
-    if(p&&(p.users?.length||p.teams?.length||p.months?.length)){
-      users=p.users||[];teams=p.teams||[];months=p.months||[];
-      records=p.records||{};criteria=p.criteria||{};
-      if(data.updated_at)_lastRemoteAt=new Date(data.updated_at).getTime();
-      ss(K.STATE,{users,teams,months,records,criteria});
-      return true;
-    }
-    return false;
+    const[tT,tU,tM,tC,tR,tS]=await Promise.all([
+      _supabase.from('app_teams').select('*'),
+      _supabase.from('app_users').select('*'),
+      _supabase.from('app_months').select('*').order('sort_order'),
+      _supabase.from('app_criteria').select('*'),
+      _supabase.from('app_records').select('*'),
+      _supabase.from('app_sync').select('updated_at').eq('id','main').maybeSingle(),
+    ]);
+    if(tT.error||tU.error||tM.error||tC.error||tR.error)return false;
+    if(!((tU.data&&tU.data.length)||(tT.data&&tT.data.length)||(tM.data&&tM.data.length)))return false;
+    teams=(tT.data||[]).map(rowToTeam);
+    users=(tU.data||[]).map(rowToUser);
+    months=(tM.data||[]).map(r=>r.name);
+    criteria={};(tC.data||[]).forEach(r=>{criteria[r.id]=rowToCrit(r);});
+    records={};months.forEach(m=>{records[m]=[];});
+    (tR.data||[]).forEach(r=>{(records[r.month]=records[r.month]||[]).push(rowToRec(r));});
+    if(tS&&tS.data&&tS.data.updated_at)_lastRemoteAt=new Date(tS.data.updated_at).getTime();
+    ss(K.STATE,{users,teams,months,records,criteria});
+    return true;
   }catch(e){console.warn('[DB load error]',e);return false;}
 }
 
-// Realtime listener — instant sync across all open tabs/computers
-let _realtimeChannel=null;
+// Poll every 30s — detect changes from other computers and reload
 function startPolling(){
-  if(_realtimeChannel){_supabase.removeChannel(_realtimeChannel);_realtimeChannel=null;}
-  if(_realtimeChannel){_supabase.removeChannel(_realtimeChannel);_realtimeChannel=null;}
-  if(_pollInterval){clearInterval(_pollInterval);_pollInterval=null;}
-  _realtimeChannel=_supabase
-    .channel('ig_state_changes')
-    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'ig_state',filter:'id=eq.main'},
-      async(payload)=>{
-        if(!currentUser||!_dbReady||_isSaving)return;
-        const remoteAt=payload.new?.updated_at?new Date(payload.new.updated_at).getTime():0;
-        if(remoteAt<=_lastRemoteAt+1000)return; // already have this version
+  if(_pollInterval)clearInterval(_pollInterval);
+  _pollInterval=setInterval(async()=>{
+    if(!currentUser||!_dbReady||_isSaving)return;
+    try{
+      const{data}=await _supabase.from('app_sync').select('updated_at').eq('id','main').maybeSingle();
+      if(!data?.updated_at)return;
+      const remoteAt=new Date(data.updated_at).getTime();
+      // If remote is newer than what we last saved/loaded, reload
+      if(remoteAt>_lastRemoteAt+2000){
         showSyncIndicator('reload');
-        const p=payload.new?.payload;
-        if(p&&(p.users?.length||p.teams?.length||p.months?.length)){
-          users=p.users||[];teams=p.teams||[];months=p.months||[];
-          records=p.records||{};criteria=p.criteria||{};
-          _lastRemoteAt=remoteAt;
-          ss(K.STATE,{users,teams,months,records,criteria});
-          refreshView();
-          showSyncIndicator('saved');
-        }
+        const loaded=await dbLoad();
+        if(loaded){refreshView();showSyncIndicator('saved');}
       }
-    )
-    .subscribe((status)=>{
-      console.log('[Realtime] status:',status);
-      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
-        console.warn('[Realtime] fallback to polling');
-        _pollInterval=setInterval(async()=>{
-          if(!currentUser||!_dbReady||_isSaving)return;
-          try{
-            const{data}=await _supabase.from('ig_state').select('updated_at').eq('id','main').single();
-            if(!data?.updated_at)return;
-            const remoteAt=new Date(data.updated_at).getTime();
-            if(remoteAt>_lastRemoteAt+2000){
-              showSyncIndicator('reload');
-              const loaded=await dbLoad();
-              if(loaded){refreshView();showSyncIndicator('saved');}
-            }
-          }catch(e){}
-        },15000);
-      }
-    });
+    }catch(e){}
+  },30000);
 }
 
 function saveState(){
